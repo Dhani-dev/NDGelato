@@ -1,13 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'package:provider/provider.dart';
+
+import 'firebase_options.dart'; // Tu archivo generado
+
+// 1. IMPORTACIÓN DEL PROVIDER: Usamos la ruta local de tu clase AuthProvider.
+import 'providers/auth_provider.dart'; 
+
+import 'screens/auth/login_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() async {
+  // Asegurarse de que los widgets estén inicializados antes de llamar a funciones nativas
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicialización de Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+
+  // Opcional: Configuración para emuladores (si los estás usando)
+  // if (useEmulator) {
+  //   await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+  //   FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
+  // }
+
+  runApp(
+    // Envolvemos toda la aplicación con ChangeNotifierProvider para el AuthProvider
+    ChangeNotifierProvider(
+      // Aquí ya no hay ambigüedad: 'AuthProvider' es solo tu clase local.
+      create: (context) => AuthProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -16,58 +41,43 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'ND Gelato App',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFDC2483)),
         useMaterial3: true,
+        fontFamily: 'Roboto', // Fuente por defecto, considera usar Inter o una específica si el diseño lo requiere
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // Usamos un Widget que maneja el flujo de autenticación
+      home: const AuthWrapper(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+// Widget que decide qué pantalla mostrar basado en el estado de autenticación
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
-    );
+    // Escucha los cambios en el AuthProvider
+    final authProvider = Provider.of<AuthProvider>(context);
+
+    switch (authProvider.status) {
+      case AuthStatus.uninitialized:
+        // Mostrar pantalla de carga mientras se verifica el token inicial
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      case AuthStatus.authenticated:
+        // El usuario está logueado, ir a la pantalla de inicio
+        print('Usuario Autenticado: ${authProvider.userModel?.email} | Rol: ${authProvider.userModel?.role}');
+        return const HomeScreen();
+      case AuthStatus.unauthenticated:
+        // El usuario no está logueado, ir a la pantalla de login
+        return const LoginScreen();
+    }
   }
 }
