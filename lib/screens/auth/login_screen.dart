@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: <Widget>[
                         // Logo (usando un placeholder, ¡reemplázalo con tu imagen real!)
                         Image.asset(
-                          'assets/logo_gelato.png', // Asegúrate de agregar tu logo aquí
+                          'assets/logo_gelato.png',
                           height: 100,
                         ),
                         const SizedBox(height: 16),

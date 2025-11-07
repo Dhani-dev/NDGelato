@@ -5,10 +5,13 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart'; // Tu archivo generado
 
 // 1. IMPORTACIÓN DEL PROVIDER: Usamos la ruta local de tu clase AuthProvider.
-import 'providers/auth_provider.dart'; 
+import 'providers/auth_provider.dart';
+import 'providers/ice_cream_provider.dart';
 
 import 'screens/auth/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/my_ice_creams_screen.dart';
+import 'screens/create_ice_cream_screen.dart';
 
 void main() async {
   // Asegurarse de que los widgets estén inicializados antes de llamar a funciones nativas
@@ -27,9 +30,11 @@ void main() async {
 
   runApp(
     // Envolvemos toda la aplicación con ChangeNotifierProvider para el AuthProvider
-    ChangeNotifierProvider(
-      // Aquí ya no hay ambigüedad: 'AuthProvider' es solo tu clase local.
-      create: (context) => AuthProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AuthProvider()),
+        ChangeNotifierProvider(create: (context) => IceCreamProvider()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -46,10 +51,16 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFDC2483)),
         useMaterial3: true,
-        fontFamily: 'Roboto', // Fuente por defecto, considera usar Inter o una específica si el diseño lo requiere
+        fontFamily: 'Roboto',
       ),
-      // Usamos un Widget que maneja el flujo de autenticación
-      home: const AuthWrapper(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const AuthWrapper(),
+        '/my_ice_creams': (context) => const MyIceCreamsScreen(),
+        '/create': (context) => const CreateIceCreamScreen(),
+        // '/orders': (context) => OrdersScreen(), // Implementar si es necesario
+        // '/profile': (context) => ProfileScreen(), // Implementar si es necesario
+      },
     );
   }
 }
