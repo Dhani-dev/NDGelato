@@ -8,6 +8,8 @@ class UserModel extends Equatable {
   final String photoUrl;
   // Campo adicional para distinguir entre usuarios normales y administradores
   final String role; // Puede ser 'user' o 'admin'
+  
+  bool get isAdmin => role == 'admin';
 
   UserModel({
     required this.uid,

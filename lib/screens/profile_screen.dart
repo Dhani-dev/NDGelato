@@ -6,7 +6,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../utils/file_utils.dart';
+import '../widgets/bottom_nav.dart';
+import '../utils/file_utils.dart'; // Asegúrate de que esta utilidad funcione correctamente
 
 import '../providers/auth_provider.dart';
 import '../providers/ice_cream_provider.dart';
@@ -26,10 +27,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Asegura que los datos necesarios (como los helados para las estadísticas) estén escuchando.
+      // Esto es independiente de la lógica de la foto de perfil.
       Provider.of<IceCreamProvider>(context, listen: false).startListeningToIceCreams();
     });
   }
 
+  /// Función para seleccionar y subir la imagen de perfil
   Future<void> _pickAndUploadImage(String uid) async {
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (picked == null) return;
@@ -37,42 +41,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isUploading = true);
 
     try {
-      final ref = FirebaseStorage.instance.ref().child('user_photos').child('$uid.jpg');
+      // 1. Crear una referencia única para Firebase Storage
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      // La referencia se guarda en 'user_photos/UID-TIMESTAMP.jpg'
+      final ref = FirebaseStorage.instance.ref().child('user_photos').child('$uid-$timestamp.jpg');
 
       UploadTask uploadTask;
       if (kIsWeb) {
-        // On web, use putData with bytes
+        // En Web, usar putData con bytes
         final Uint8List data = await picked.readAsBytes();
         uploadTask = ref.putData(
           data,
           SettableMetadata(contentType: 'image/jpeg'),
         );
       } else {
-        // On mobile/desktop, use File and putFile
-        final file = createFile(picked.path);
+        // En móvil/desktop, usar File y putFile
+        final file = createFile(picked.path); // Requiere la función createFile
         uploadTask = ref.putFile(file);
       }
 
-      final snapshot = await uploadTask.whenComplete(() {});
+      // 2. Esperar a que la carga se complete y obtener la URL
+      final snapshot = await uploadTask;
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      // Update Firestore user document
+      // 3. Actualizar el documento del usuario en Firestore (campo 'photoUrl')
       await FirebaseFirestore.instance.collection('users').doc(uid).update({'photoUrl': downloadUrl});
 
-      // Update FirebaseAuth user as well
+      // 4. Actualizar el usuario de Firebase Auth
       final current = FirebaseAuth.instance.currentUser;
       if (current != null) {
         await current.updatePhotoURL(downloadUrl);
         await current.reload();
       }
 
-      // Refresh provider's userModel so UI updates immediately
+      // 5. Actualizar el AuthProvider para que la UI se refresque inmediatamente
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.refreshUserProfile();
 
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto de perfil actualizada')));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error subiendo imagen: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error subiendo imagen: $e. Revisa las reglas de Storage.')));
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }
@@ -92,6 +100,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: true,
         foregroundColor: Colors.black,
       ),
+      bottomNavigationBar: BottomNav(
+        currentIndex: 3, // Profile es el índice 3
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushReplacementNamed(context, '/');
+          } else if (index == 1) {
+            Navigator.pushReplacementNamed(context, '/my_ice_creams');
+          } else if (index == 2) {
+            Navigator.pushReplacementNamed(context, '/orders');
+          }
+          // Si index == 3, nos quedamos aquí
+        },
+      ),
       body: userModel == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -99,6 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // --- Tarjeta de Perfil ---
                   Card(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: Padding(
@@ -111,6 +133,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               CircleAvatar(
                                 radius: 60,
                                 backgroundColor: Colors.grey[200],
+                                // Muestra la foto de perfil o una imagen por defecto
                                 backgroundImage: userModel.photoUrl.isNotEmpty
                                     ? NetworkImage(userModel.photoUrl) as ImageProvider
                                     : const AssetImage('assets/logo_gelato.png'),
@@ -141,11 +164,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Text(userModel.displayName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 8),
                           Text(userModel.email, style: TextStyle(color: Colors.grey[700])),
+                          // Badge de Admin (si aplica)
+                          if (userModel.isAdmin) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.purple.shade100,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.admin_panel_settings, size: 16, color: Colors.purple[700]),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Admin',
+                                    style: TextStyle(
+                                      color: Colors.purple[700],
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
+                  // --- Tarjeta de Estadísticas ---
                   Card(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: Padding(
@@ -183,9 +232,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  // --- Botón de Cerrar Sesión ---
                   OutlinedButton.icon(
                     onPressed: () async {
                       await auth.signOut();
+                      if (mounted) {
+                        // Navegar a /login y eliminar todas las rutas anteriores
+                        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                      }
                     },
                     icon: const Icon(Icons.logout, color: Colors.red),
                     label: const Padding(

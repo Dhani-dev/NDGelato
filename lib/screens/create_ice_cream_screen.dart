@@ -93,7 +93,7 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
   }
   
   void _showSnackbar(String message) {
-     ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(message), 
             behavior: SnackBarBehavior.floating, // Para que se vea mejor
@@ -105,22 +105,23 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedFlavors.isEmpty) {
-      _showSnackbar('Please select at least one flavor.');
+      _showSnackbar('Please select at least one flavor.'); // Validación de sabor
       return;
     }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     setState(() => _isLoading = true);
     
-    // **NOTA IMPORTANTE:** El campo de Precio NO está visible en el diseño de Figma,
-    // por lo que he eliminado el controlador de precio y la validación para simplificar el formulario
-    // y hacerlo coincidir con la imagen. Si el precio es fijo o se calcula automáticamente,
-    // debes ajustarlo aquí (he puesto un valor de ejemplo).
-
     try {
+      // Calcular precio basado en sabores ($2.00 cada uno) y toppings ($1.00 cada uno)
+      const basePrice = 0.00; // Precio base
+      final flavorPrice = _selectedFlavors.length * 2.00; // $2.00 por sabor
+      final toppingPrice = _selectedToppings.length * 1.00; // $1.00 por topping
+      final totalPrice = basePrice + flavorPrice + toppingPrice;
+
       final iceCream = IceCream(
         name: _nameController.text,
-        price: 9.99, // Precio fijo/de ejemplo, ya que no se pide en el form
+        price: totalPrice,
         base: _base,
         authorId: authProvider.userModel?.uid ?? '',
         authorName: authProvider.userModel?.displayName ?? 'Unknown',
@@ -158,175 +159,419 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
           style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.bold),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(bottom: 80), // Espacio para el Bottom Nav
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. Name Your Creation
-              _CustomSectionCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Name Your Creation', style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: InputDecoration(
-                        hintText: 'e.g. Rainbow Delight',
-                        filled: true,
-                        fillColor: AppTheme.backgroundColor,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a name';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              
-              // 2. Choose Your Base
-              _CustomSectionCard(
-                title: 'Choose Your Base',
-                child: Row(
-                  children: [
-                    _BaseOption(
-                      label: 'Cone',
-                      icon: Icons.icecream,
-                      isSelected: _base == 'Cone',
-                      onTap: () => setState(() => _base = 'Cone'),
-                    ),
-                    const SizedBox(width: 16),
-                    _BaseOption(
-                      label: 'Cup',
-                      icon: Icons.local_cafe,
-                      isSelected: _base == 'Cup',
-                      onTap: () => setState(() => _base = 'Cup'),
-                    ),
-                  ],
-                ),
-              ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 900; // layout horizontal para pantallas anchas
 
-              // 3. Select Flavors
-              _CustomSectionCard(
-                title: 'Select Flavors (Max $maxFlavors)',
-                child: Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: iceCreamProvider.availableFlavors.map((flavor) {
-                    final data = flavorData[flavor] ?? {'color': Colors.grey, 'abbr': '?'};
-                    return _FlavorChip(
-                      flavor: flavor,
-                      color: data['color'] as Color,
-                      abbr: data['abbr'] as String,
-                      isSelected: _selectedFlavors.contains(flavor),
-                      onTap: () => _toggleFlavor(flavor),
-                    );
-                  }).toList(),
-                ),
-              ),
-
-              // 4. Preview Section
-              _CustomSectionCard(
-                title: 'Preview',
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Column(
-                  children: [
-                    // --- Helado Preview ---
-                    IceCreamPreviewWidget(
-                      base: _base,
-                      flavors: _selectedFlavors,
-                      toppings: _selectedToppings,
-                      size: 200, // Ajuste un tamaño grande para la creación
-                      flavorData: flavorData, // Pasamos los datos de color/abbr
-                      toppingIcons: toppingIcons, // Pasamos los datos de iconos
-                    ),
-                    
-                    const SizedBox(height: 32),
-                    
-                    // --- Botón de Creación ---
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _submitForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryColor,
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+          // Envolvemos todo el contenido en un Form para mantener la funcionalidad de validación
+          return Form(
+            key: _formKey,
+            child: isWide
+                ? SingleChildScrollView(
+                    padding: const EdgeInsets.only(bottom: 80),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // --- IZQUIERDA (Name, Base, Flavors) ---
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            children: [
+                              // 1. Name Your Creation
+                              _CustomSectionCard(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('Name Your Creation', 
+                                          style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold)
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.primaryColor.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.attach_money, size: 20, color: AppTheme.primaryColor),
+                                              Text(
+                                                ((_selectedFlavors.length * 2.00) + (_selectedToppings.length * 1.00)).toStringAsFixed(2),
+                                                style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                                      color: AppTheme.primaryColor,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextFormField(
+                                      controller: _nameController,
+                                      decoration: InputDecoration(
+                                        hintText: 'e.g. Rainbow Delight',
+                                        filled: true,
+                                        fillColor: AppTheme.backgroundColor,
+                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                      ),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter a name'; // NOTIFICACIÓN DE NOMBRE AQUÍ
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // 2. Choose Your Base
+                              _CustomSectionCard(
+                                title: 'Choose Your Base',
+                                child: Row(
+                                  children: [
+                                    _BaseOption(
+                                      label: 'Cone',
+                                      icon: Icons.icecream,
+                                      isSelected: _base == 'Cone',
+                                      onTap: () => setState(() => _base = 'Cone'),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    _BaseOption(
+                                      label: 'Cup',
+                                      icon: Icons.local_cafe,
+                                      isSelected: _base == 'Cup',
+                                      onTap: () => setState(() => _base = 'Cup'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // 3. Select Flavors
+                              _CustomSectionCard(
+                                title: 'Select Flavors (Max $maxFlavors)',
+                                child: Wrap(
+                                  spacing: 12,
+                                  runSpacing: 12,
+                                  children: iceCreamProvider.availableFlavors.map((flavor) {
+                                    final data = flavorData[flavor] ?? {'color': Colors.grey, 'abbr': '?'};
+                                    return _FlavorChip(
+                                      flavor: flavor,
+                                      color: data['color'] as Color,
+                                      abbr: data['abbr'] as String,
+                                      isSelected: _selectedFlavors.contains(flavor),
+                                      onTap: () => _toggleFlavor(flavor),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : Text('Save Ice Cream', style: Theme.of(context).textTheme.titleLarge!.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
 
-              // 5. Add Toppings
-              _CustomSectionCard(
-                title: 'Add Toppings (Max $maxToppings)',
-                child: Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: iceCreamProvider.availableToppings.map((topping) {
-                    return _ToppingChip(
-                      topping: topping,
-                      icon: toppingIcons[topping] ?? '•',
-                      isSelected: _selectedToppings.contains(topping),
-                      onTap: () => _toggleTopping(topping),
-                    );
-                  }).toList(),
-                ),
-              ),
+                        // --- CENTRO (Preview & Button) ---
+                        Expanded(
+                          flex: 1,
+                          child: _CustomSectionCard(
+                            title: 'Preview',
+                            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                            child: Column(
+                              children: [
+                                // --- Helado Preview ---
+                                IceCreamPreviewWidget(
+                                  base: _base,
+                                  flavors: _selectedFlavors,
+                                  toppings: _selectedToppings,
+                                  size: 200, // Ajuste un tamaño grande para la creación
+                                  flavorData: flavorData, // Pasamos los datos de color/abbr
+                                  toppingIcons: toppingIcons, // Pasamos los datos de iconos
+                                ),
+                                
+                                const SizedBox(height: 32),
+                                
+                                // --- Botón de Creación ---
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: _isLoading ? null : _submitForm,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryColor,
+                                      padding: const EdgeInsets.symmetric(vertical: 18),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                                    ),
+                                    child: _isLoading
+                                        ? const CircularProgressIndicator(color: Colors.white)
+                                        : Text('Save Ice Cream', style: Theme.of(context).textTheme.titleLarge!.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
 
-              // 6. Your Selection (Resumen de Chips en la parte inferior)
-              _CustomSectionCard(
-                title: 'Your Selection (${_selectedFlavors.length}/$maxFlavors)',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Flavors
-                    Text('Flavors:', style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _selectedFlavors.map((flavor) => _SelectionChip(
-                        label: flavor,
-                        color: AppTheme.primaryColor,
-                      )).toList(),
-                    ),
-                    
-                    const SizedBox(height: 16),
+                        // --- DERECHA (Toppings & Summary) ---
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            children: [
+                              // 5. Add Toppings
+                              _CustomSectionCard(
+                                title: 'Add Toppings (Max $maxToppings)',
+                                child: Wrap(
+                                  spacing: 12,
+                                  runSpacing: 12,
+                                  children: iceCreamProvider.availableToppings.map((topping) {
+                                    return _ToppingChip(
+                                      topping: topping,
+                                      icon: toppingIcons[topping] ?? '•',
+                                      isSelected: _selectedToppings.contains(topping),
+                                      onTap: () => _toggleTopping(topping),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
 
-                    // Toppings
-                    Text('Toppings (${_selectedToppings.length}/$maxToppings):', style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _selectedToppings.map((topping) => _SelectionChip(
-                        label: topping,
-                        color: AppTheme.secondaryColor,
-                      )).toList(),
+                              // 6. Your Selection (Resumen de Chips en la parte inferior)
+                              _CustomSectionCard(
+                                title: 'Your Selection (${_selectedFlavors.length}/$maxFlavors)',
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Flavors
+                                    Text('Flavors:', style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold)),
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: _selectedFlavors.map((flavor) => _SelectionChip(
+                                        label: flavor,
+                                        color: AppTheme.primaryColor,
+                                      )).toList(),
+                                    ),
+                                    
+                                    const SizedBox(height: 16),
+
+                                    // Toppings
+                                    Text('Toppings (${_selectedToppings.length}/$maxToppings):', style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold)),
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: _selectedToppings.map((topping) => _SelectionChip(
+                                        label: topping,
+                                        color: AppTheme.secondaryColor,
+                                      )).toList(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+                  )
+                // Layout normal (mobile/default)
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.only(bottom: 80), // Espacio para el Bottom Nav
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 1. Name Your Creation
+                        _CustomSectionCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Name Your Creation', 
+                                    style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold)
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.attach_money, size: 20, color: AppTheme.primaryColor),
+                                        Text(
+                                          ((_selectedFlavors.length * 2.00) + (_selectedToppings.length * 1.00)).toStringAsFixed(2),
+                                          style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                            color: AppTheme.primaryColor,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: _nameController,
+                                decoration: InputDecoration(
+                                  hintText: 'e.g. Rainbow Delight',
+                                  filled: true,
+                                  fillColor: AppTheme.backgroundColor,
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter a name'; // NOTIFICACIÓN DE NOMBRE AQUÍ
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        // 2. Choose Your Base
+                        _CustomSectionCard(
+                          title: 'Choose Your Base',
+                          child: Row(
+                            children: [
+                              _BaseOption(
+                                label: 'Cone',
+                                icon: Icons.icecream,
+                                isSelected: _base == 'Cone',
+                                onTap: () => setState(() => _base = 'Cone'),
+                              ),
+                              const SizedBox(width: 16),
+                              _BaseOption(
+                                label: 'Cup',
+                                icon: Icons.local_cafe,
+                                isSelected: _base == 'Cup',
+                                onTap: () => setState(() => _base = 'Cup'),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 3. Select Flavors
+                        _CustomSectionCard(
+                          title: 'Select Flavors (Max $maxFlavors)',
+                          child: Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: iceCreamProvider.availableFlavors.map((flavor) {
+                              final data = flavorData[flavor] ?? {'color': Colors.grey, 'abbr': '?'};
+                              return _FlavorChip(
+                                flavor: flavor,
+                                color: data['color'] as Color,
+                                abbr: data['abbr'] as String,
+                                isSelected: _selectedFlavors.contains(flavor),
+                                onTap: () => _toggleFlavor(flavor),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+
+                        // 4. Preview Section (Incluye el botón de guardar en el layout móvil)
+                        _CustomSectionCard(
+                          title: 'Preview',
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: Column(
+                            children: [
+                              // --- Helado Preview ---
+                              IceCreamPreviewWidget(
+                                base: _base,
+                                flavors: _selectedFlavors,
+                                toppings: _selectedToppings,
+                                size: 200, // Ajuste un tamaño grande para la creación
+                                flavorData: flavorData, // Pasamos los datos de color/abbr
+                                toppingIcons: toppingIcons, // Pasamos los datos de iconos
+                              ),
+                              
+                              const SizedBox(height: 32),
+                              
+                              // --- Botón de Creación ---
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _isLoading ? null : _submitForm,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.primaryColor,
+                                    padding: const EdgeInsets.symmetric(vertical: 18),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                                  ),
+                                  child: _isLoading
+                                      ? const CircularProgressIndicator(color: Colors.white)
+                                      : Text('Save Ice Cream', style: Theme.of(context).textTheme.titleLarge!.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 5. Add Toppings
+                        _CustomSectionCard(
+                          title: 'Add Toppings (Max $maxToppings)',
+                          child: Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: iceCreamProvider.availableToppings.map((topping) {
+                              return _ToppingChip(
+                                topping: topping,
+                                icon: toppingIcons[topping] ?? '•',
+                                isSelected: _selectedToppings.contains(topping),
+                                onTap: () => _toggleTopping(topping),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+
+                        // 6. Your Selection (Resumen de Chips en la parte inferior)
+                        _CustomSectionCard(
+                          title: 'Your Selection (${_selectedFlavors.length}/$maxFlavors)',
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Flavors
+                              Text('Flavors:', style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: _selectedFlavors.map((flavor) => _SelectionChip(
+                                  label: flavor,
+                                  color: AppTheme.primaryColor,
+                                )).toList(),
+                              ),
+                              
+                              const SizedBox(height: 16),
+
+                              // Toppings
+                              Text('Toppings (${_selectedToppings.length}/$maxToppings):', style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: _selectedToppings.map((topping) => _SelectionChip(
+                                  label: topping,
+                                  color: AppTheme.secondaryColor,
+                                )).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          );
+        },
       ),
       bottomNavigationBar: BottomNav(
-        currentIndex: 2,
+        currentIndex: 1,
         onTap: (index) {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/');
@@ -343,7 +588,7 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
   }
 }
 
-// --- WIDGETS AUXILIARES ---
+// --- WIDGETS AUXILIARES (Sin Cambios) ---
 
 class _CustomSectionCard extends StatelessWidget {
   final String? title;
@@ -420,9 +665,9 @@ class _BaseOption extends StatelessWidget {
               Text(
                 label,
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: isSelected ? Colors.white : AppTheme.textColor,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: isSelected ? Colors.white : AppTheme.textColor,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
             ],
           ),
@@ -463,7 +708,7 @@ class _FlavorChip extends StatelessWidget {
             ),
             child: Center(
               child: isSelected ? 
-                Icon(Icons.check, color: Colors.white, size: 28) : 
+                const Icon(Icons.check, color: Colors.white, size: 28) : 
                 Text(abbr, style: Theme.of(context).textTheme.titleLarge!.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ),

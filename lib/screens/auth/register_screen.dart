@@ -24,20 +24,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
 
       try {
-        await Provider.of<AuthProvider>(context, listen: false).register(
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        await authProvider.register(
           displayName: _nameController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
         
-        // Si el registro es exitoso, Firebase AuthProvider redirigirá.
-        // Opcionalmente, puedes mostrar un mensaje:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Registro exitoso! Iniciando sesión...'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        // Iniciar sesión automáticamente después del registro
+        if (mounted) {
+          await authProvider.signIn(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
+          
+          Navigator.of(context).pushReplacementNamed('/');
+        }
 
       } catch (e) {
         // Mostrar un snackbar con el error

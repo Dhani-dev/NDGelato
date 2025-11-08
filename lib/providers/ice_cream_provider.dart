@@ -16,19 +16,23 @@ class IceCreamProvider with ChangeNotifier {
 
   // Available flavors and toppings
   final List<String> availableFlavors = [
+    'Strawberry',
     'Chocolate',
     'Vanilla',
-    'Strawberry',
     'Mint',
-    'Coffee',
+    'Blueberry',
+    'Mango',
+    'Pistachio',
+    'Cookies & Cream',
   ];
 
   final List<String> availableToppings = [
-    'Chocolate Chips',
     'Sprinkles',
-    'Caramel',
-    'Whipped Cream',
     'Cherry',
+    'Chocolate Chips',
+    'Whipped Cream',
+    'Caramel',
+    'Cookie',
   ];
 
   // Create

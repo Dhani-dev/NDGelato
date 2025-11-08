@@ -39,10 +39,26 @@ class _MyIceCreamsScreenState extends State<MyIceCreamsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
+        // Nuevo: Ajustar el AppBar para contener el logo y la acción
+        toolbarHeight: 80,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text(
           'My Ice Creams',
-          style: Theme.of(context).textTheme.headlineMedium,
+          style: Theme.of(
+            context,
+          ).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.bold),
         ),
+        actions: [
+          // LOGO DE ND-GELATO (Copia de home_screen.dart)
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: SizedBox(
+              height: 50,
+              child: Image.asset('assets/logo_gelato.png', fit: BoxFit.contain),
+            ),
+          ),
+        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
