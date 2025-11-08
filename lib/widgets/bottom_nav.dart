@@ -35,7 +35,7 @@ class BottomNav extends StatelessWidget {
           } else if (index == 2) {
             // Navigator.pushReplacementNamed(context, '/orders');
           } else if (index == 3) {
-            // Navigator.pushReplacementNamed(context, '/profile');
+            Navigator.pushReplacementNamed(context, '/profile');
           }
         },
         backgroundColor: Colors.transparent,

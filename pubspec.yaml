@@ -38,6 +38,8 @@ dependencies:
   firebase_auth: ^6.1.2
   cloud_firestore: ^6.1.0
   provider: ^6.1.5+1
+  firebase_storage: ^13.0.4
+  image_picker: ^0.8.7+5
   google_fonts: ^6.3.2
   equatable: ^2.0.7
 

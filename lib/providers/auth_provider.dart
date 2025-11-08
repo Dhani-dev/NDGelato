@@ -90,4 +90,19 @@ class AuthProvider with ChangeNotifier {
   // -------------------------
 
   // En el futuro, aquí podríamos agregar lógica para actualizar el perfil en Firestore
+  /// Fuerza la recarga del perfil de usuario desde Firestore.
+  /// Útil cuando se actualiza el documento del usuario sin cambiar el estado de Auth.
+  Future<void> refreshUserProfile() async {
+    if (_user == null) return;
+    try {
+      final profile = await _authService.getUserProfile(_user!.uid);
+      if (profile != null) {
+        _userModel = profile;
+        notifyListeners();
+      }
+    } catch (e) {
+      // No bloqueante: solo logueamos el error
+      debugPrint('Error refreshing user profile: $e');
+    }
+  }
 }
