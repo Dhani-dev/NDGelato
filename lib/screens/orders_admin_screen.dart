@@ -15,7 +15,8 @@ class _OrdersAdminScreenState extends State<OrdersAdminScreen> {
   final OrderService _service = OrderService();
   String _filter = 'all';
 
-  final List<String> tabs = ['all', 'pending', 'paid', 'preparing', 'ready'];
+  // Lista de estados posibles incluyendo delivered y cancelled
+  final List<String> tabs = ['all', 'pending', 'paid', 'preparing', 'ready', 'delivered', 'cancelled'];
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +100,7 @@ class _OrdersAdminScreenState extends State<OrdersAdminScreen> {
               children: [
                 CircleAvatar(child: Text(order.customerName.isNotEmpty ? order.customerName[0].toUpperCase() : 'U')),
                 const SizedBox(width: 12),
-                Expanded(child: Text(order.iceCreamName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600))),
+                Expanded(child: Text(order.items.isNotEmpty ? order.items[0]['name'] : 'Order', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600))),
                 _statusBadge(order.status),
               ],
             ),
@@ -113,9 +114,8 @@ class _OrdersAdminScreenState extends State<OrdersAdminScreen> {
             Text('Total:', style: TextStyle(color: Colors.grey[700])),
             Align(alignment: Alignment.centerRight, child: Text('\$${order.total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
             const SizedBox(height: 8),
-            Text('Flavors: ${order.flavors.join(', ')}'),
+            Text('Items: ${order.items.map((i) => i['name']).join(', ')}'),
             const SizedBox(height: 4),
-            Text('Toppings: ${order.toppings.join(', ')}'),
             const SizedBox(height: 12),
             Row(
               children: _actionButtons(order),
@@ -162,7 +162,7 @@ class _OrdersAdminScreenState extends State<OrdersAdminScreen> {
           style: ElevatedButton.styleFrom(backgroundColor: Colors.pink),
           onPressed: () async {
             await _service.updateStatus(order.id!, next);
-            if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Order updated: ${order.iceCreamName} -> ${next}')));
+            if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Order updated: ${order.items.isNotEmpty ? order.items[0]['name'] : ''} -> ${next}')));
           },
           child: Text('Mark as: ${_labelFor(next)}'),
         ),

@@ -188,12 +188,18 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Image.asset('assets/logo_gelato.png', fit: BoxFit.contain),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: AppTheme.textColor),
-            onPressed: () async {
-              await authProvider.signOut();
-            },
-          ),
+            IconButton(
+              icon: const Icon(Icons.shopping_cart_outlined, color: AppTheme.textColor),
+              onPressed: () {
+                Navigator.pushNamed(context, '/create_order');
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.logout, color: AppTheme.textColor),
+              onPressed: () async {
+                await authProvider.signOut();
+              },
+            ),
         ],
       ),
       // --- Cambio clave: Usar ListView como cuerpo para que todo se deslice ---

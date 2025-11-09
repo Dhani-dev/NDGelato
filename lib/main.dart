@@ -7,6 +7,7 @@ import 'firebase_options.dart'; // Tu archivo generado
 // 1. IMPORTACIÓN DEL PROVIDER: Usamos la ruta local de tu clase AuthProvider.
 import 'providers/auth_provider.dart';
 import 'providers/ice_cream_provider.dart';
+import 'providers/order_provider.dart';
 
 import 'screens/auth/login_screen.dart';
 import 'screens/home_screen.dart';
@@ -14,6 +15,7 @@ import 'screens/my_ice_creams_screen.dart';
 import 'screens/create_ice_cream_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/orders_wrapper.dart';
+import 'screens/create_order_screen.dart';
 
 void main() async {
   // Asegurarse de que los widgets estén inicializados antes de llamar a funciones nativas
@@ -36,6 +38,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => IceCreamProvider()),
+        ChangeNotifierProvider(create: (context) => OrderProvider()),
       ],
       child: const MyApp(),
     ),
@@ -62,6 +65,7 @@ class MyApp extends StatelessWidget {
         '/create': (context) => const CreateIceCreamScreen(),
   '/profile': (context) => const ProfileScreen(),
   '/orders': (context) => const OrdersWrapper(),
+  '/create_order': (context) => CreateOrderScreen(),
         // '/orders': (context) => OrdersScreen(), // Implementar si es necesario
         // '/profile': (context) => ProfileScreen(), // Implementar si es necesario
       },

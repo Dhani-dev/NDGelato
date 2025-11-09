@@ -9,8 +9,11 @@ class OrdersWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    // Usando listen: false para evitar reconstrucciones innecesarias
+    final auth = Provider.of<AuthProvider>(context, listen: false);
     final role = auth.userModel?.role ?? 'user';
+    
+    // Usando const para mantener el estado de los widgets
     if (role == 'admin') {
       return const OrdersAdminScreen();
     }

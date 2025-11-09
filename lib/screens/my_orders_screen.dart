@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../widgets/bottom_nav.dart';
-import 'dart:async';
-import 'dart:math';
 import 'package:flutter/foundation.dart' show kDebugMode;
-// small formatter helper instead of intl
 import '../providers/auth_provider.dart';
-import '../providers/ice_cream_provider.dart';
 import '../services/order_service.dart';
 import '../models/order_model.dart';
 
@@ -19,38 +15,18 @@ class MyOrdersScreen extends StatefulWidget {
 
 class _MyOrdersScreenState extends State<MyOrdersScreen> {
   final OrderService _service = OrderService();
-  List<OrderModel> _orders = [];
-  Stream<List<OrderModel>>? _stream;
-  late Map<String, String> _prevStatus;
-  StreamSubscription<List<OrderModel>>? _sub;
+  final Map<String, String> _prevStatus = {};
 
-  @override
-  void initState() {
-    super.initState();
-    _prevStatus = {};
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-      final uid = auth.user?.uid;
-      if (uid == null) return;
-      _stream = _service.streamOrders(userId: uid);
-      _sub = _stream!.listen((list) {
-        // Compare statuses and notify for changes
-        for (final o in list) {
-          final old = _prevStatus[o.id] ?? '';
-          if (old.isNotEmpty && old != o.status) {
-            if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Order "${o.iceCreamName}" changed to ${o.status}')));
-          }
-        }
-        _prevStatus = {for (var o in list) o.id!: o.status};
-        setState(() => _orders = list);
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _sub?.cancel();
-    super.dispose();
+  void _checkStatusChange(BuildContext context, List<OrderModel> orders) {
+    for (final order in orders) {
+      final old = _prevStatus[order.id] ?? '';
+      if (old.isNotEmpty && old != order.status) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Order "${order.items.isNotEmpty ? order.items[0]['name'] : ''}" changed to ${order.status}'))
+        );
+      }
+      _prevStatus[order.id!] = order.status;
+    }
   }
 
   @override
@@ -60,40 +36,37 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('My Orders'), backgroundColor: Colors.white, foregroundColor: Colors.black),
-      body: _orders.isEmpty
-          ? const Center(child: Text('No orders found'))
-          : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: _orders.length,
-              itemBuilder: (context, i) => _buildOrderCard(context, _orders[i], _service),
-            ),
+      body: StreamBuilder<List<OrderModel>>(
+        stream: _service.streamOrders(userId: auth.user!.uid),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          final orders = snapshot.data ?? [];
+          
+          // Verificar cambios de estado
+          _checkStatusChange(context, orders);
+          
+          if (orders.isEmpty) {
+            return const Center(child: Text('No orders found'));
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: orders.length,
+            itemBuilder: (context, i) => _buildOrderCard(context, orders[i], _service),
+          );
+        },
+      ),
       // Dev-only FAB to create a sample order for testing realtime behavior
       floatingActionButton: kDebugMode
           ? FloatingActionButton.extended(
-              onPressed: () async {
-                final iceProvider = Provider.of<IceCreamProvider>(context, listen: false);
-                final sample = iceProvider.iceCreams.isNotEmpty ? iceProvider.iceCreams.first : null;
-                final uid = Provider.of<AuthProvider>(context, listen: false).user!.uid;
-                final name = Provider.of<AuthProvider>(context, listen: false).userModel?.displayName ?? 'User';
-                final rnd = Random();
-                final order = OrderModel(
-                  orderNumber: rnd.nextInt(900000) + 100000,
-                  iceCreamId: sample?.id ?? 'sample-id',
-                  iceCreamName: sample?.name ?? 'Sample Ice Cream',
-                  customerId: uid,
-                  customerName: name,
-                  total: sample != null ? (sample.price ?? 9.99) : 9.99,
-                  flavors: sample != null ? List<String>.from(sample.flavors ?? ['vanilla']) : ['vanilla'],
-                  toppings: sample != null ? List<String>.from(sample.toppings ?? []) : [],
-                );
-
-                try {
-                  final id = await _service.createOrder(order);
-                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Dev order created: $id')));
-                } catch (e) {
-                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error creating dev order: $e')));
-                }
-              },
+              onPressed: () => Navigator.pushNamed(context, '/create_order'),
               label: const Text('Create Order (dev)'),
               icon: const Icon(Icons.add_shopping_cart),
             )
@@ -127,10 +100,10 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
+            Row(children: [
             const Icon(Icons.icecream),
             const SizedBox(width: 8),
-            Expanded(child: Text(order.iceCreamName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600))),
+            Expanded(child: Text(order.items.isNotEmpty ? order.items[0]['name'] : 'Order', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600))),
             _statusBadge(order.status),
           ]),
           const SizedBox(height: 12),
@@ -139,8 +112,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
           const SizedBox(height: 8),
           Text('Total: \$${order.total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Text('Flavors: ${order.flavors.join(', ')}'),
-          Text('Toppings: ${order.toppings.join(', ')}'),
+          Text('Items: ${order.items.map((i) => i['name']).join(', ')}'),
           const SizedBox(height: 12),
           _progressBar(progress),
           const SizedBox(height: 12),

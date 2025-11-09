@@ -1,28 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// OrderModel now references a list of ice cream items instead of flavors/toppings.
 class OrderModel {
   final String? id;
   final int orderNumber;
-  final String iceCreamId;
-  final String iceCreamName;
+  final List<Map<String, dynamic>> items; // each item: {"id", "name", "price", "quantity"}
   final String customerId;
   final String customerName;
   final double total;
-  final List<String> flavors;
-  final List<String> toppings;
   final String status; // pending, paid, preparing, ready, delivered, cancelled
   final DateTime createdAt;
 
   OrderModel({
     this.id,
     required this.orderNumber,
-    required this.iceCreamId,
-    required this.iceCreamName,
+    required this.items,
     required this.customerId,
     required this.customerName,
     required this.total,
-    required this.flavors,
-    required this.toppings,
     this.status = 'pending',
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
@@ -30,13 +25,10 @@ class OrderModel {
   Map<String, dynamic> toMap() {
     return {
       'orderNumber': orderNumber,
-      'iceCreamId': iceCreamId,
-      'iceCreamName': iceCreamName,
+      'items': items,
       'customerId': customerId,
       'customerName': customerName,
       'total': total,
-      'flavors': flavors,
-      'toppings': toppings,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
     };
@@ -46,13 +38,10 @@ class OrderModel {
     return OrderModel(
       id: id,
       orderNumber: map['orderNumber'] as int? ?? 0,
-      iceCreamId: map['iceCreamId'] as String? ?? '',
-      iceCreamName: map['iceCreamName'] as String? ?? '',
+      items: List<Map<String, dynamic>>.from(map['items'] ?? []),
       customerId: map['customerId'] as String? ?? '',
       customerName: map['customerName'] as String? ?? '',
       total: (map['total'] as num).toDouble(),
-      flavors: List<String>.from(map['flavors'] ?? []),
-      toppings: List<String>.from(map['toppings'] ?? []),
       status: map['status'] as String? ?? 'pending',
       createdAt: (map['createdAt'] as Timestamp).toDate(),
     );
