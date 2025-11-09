@@ -26,17 +26,26 @@ class BottomNav extends StatelessWidget {
       ),
       child: BottomNavigationBar(
         currentIndex: currentIndex,
+        // Call parent callback first. Then perform a safe fallback navigation to ensure
+        // taps always navigate even if a parent did not perform navigation for some screens.
         onTap: (index) {
-          onTap(index);
-          if (index == 0) {
-            Navigator.pushReplacementNamed(context, '/');
-          } else if (index == 1) {
-            Navigator.pushReplacementNamed(context, '/my_ice_creams');
-          } else if (index == 2) {
-            // Navigator.pushReplacementNamed(context, '/orders');
-          } else if (index == 3) {
-            Navigator.pushReplacementNamed(context, '/profile');
-          }
+          try {
+            onTap(index);
+          } catch (_) {}
+
+          // Fallback navigation (idempotent): map index -> route
+          String route = '/';
+          if (index == 0) route = '/';
+          else if (index == 1) route = '/my_ice_creams';
+          else if (index == 2) route = '/orders';
+          else if (index == 3) route = '/profile';
+
+          // Use pushReplacementNamed to avoid stacking many routes
+          try {
+            if (ModalRoute.of(context)?.settings.name != route) {
+              Navigator.pushReplacementNamed(context, route);
+            }
+          } catch (_) {}
         },
         backgroundColor: Colors.transparent,
         elevation: 0,

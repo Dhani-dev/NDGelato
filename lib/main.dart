@@ -13,6 +13,7 @@ import 'screens/home_screen.dart';
 import 'screens/my_ice_creams_screen.dart';
 import 'screens/create_ice_cream_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/orders_wrapper.dart';
 
 void main() async {
   // Asegurarse de que los widgets estén inicializados antes de llamar a funciones nativas
@@ -59,7 +60,8 @@ class MyApp extends StatelessWidget {
         '/': (context) => const AuthWrapper(),
         '/my_ice_creams': (context) => const MyIceCreamsScreen(),
         '/create': (context) => const CreateIceCreamScreen(),
-        '/profile': (context) => const ProfileScreen(),
+  '/profile': (context) => const ProfileScreen(),
+  '/orders': (context) => const OrdersWrapper(),
         // '/orders': (context) => OrdersScreen(), // Implementar si es necesario
         // '/profile': (context) => ProfileScreen(), // Implementar si es necesario
       },
