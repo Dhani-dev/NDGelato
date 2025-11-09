@@ -9,7 +9,6 @@ class IceCream {
   final String authorName;
   final List<String> flavors;
   final List<String> toppings;
-  final String? imageUrl;
   final DateTime createdAt;
 
   IceCream({
@@ -21,7 +20,6 @@ class IceCream {
     required this.authorName,
     required this.flavors,
     required this.toppings,
-    this.imageUrl,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -34,7 +32,6 @@ class IceCream {
       'authorName': authorName,
       'flavors': flavors,
       'toppings': toppings,
-      'imageUrl': imageUrl,
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
@@ -49,8 +46,7 @@ class IceCream {
       authorName: map['authorName'] as String,
       flavors: List<String>.from(map['flavors']),
       toppings: List<String>.from(map['toppings']),
-      imageUrl: map['imageUrl'] as String?,
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      createdAt: (map['createdAt'] as Timestamp).toDate()
     );
   }
 
@@ -75,7 +71,6 @@ class IceCream {
       authorName: authorName ?? this.authorName,
       flavors: flavors ?? this.flavors,
       toppings: toppings ?? this.toppings,
-      imageUrl: imageUrl ?? this.imageUrl,
       createdAt: createdAt ?? this.createdAt,
     );
   }
