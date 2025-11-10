@@ -29,13 +29,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Asegura que los datos necesarios (como los helados para las estadísticas) estén escuchando.
       // Esto es independiente de la lógica de la foto de perfil.
-      Provider.of<IceCreamProvider>(context, listen: false).startListeningToIceCreams();
+      Provider.of<IceCreamProvider>(
+        context,
+        listen: false,
+      ).startListeningToIceCreams();
     });
   }
 
   /// Función para seleccionar y subir la imagen de perfil
   Future<void> _pickAndUploadImage(String uid) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (picked == null) return;
 
     setState(() => _isUploading = true);
@@ -44,7 +50,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // 1. Crear una referencia única para Firebase Storage
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       // La referencia se guarda en 'user_photos/UID-TIMESTAMP.jpg'
-      final ref = FirebaseStorage.instance.ref().child('user_photos').child('$uid-$timestamp.jpg');
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('user_photos')
+          .child('$uid-$timestamp.jpg');
 
       UploadTask uploadTask;
       if (kIsWeb) {
@@ -65,7 +74,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
       // 3. Actualizar el documento del usuario en Firestore (campo 'photoUrl')
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({'photoUrl': downloadUrl});
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'photoUrl': downloadUrl,
+      });
 
       // 4. Actualizar el usuario de Firebase Auth
       final current = FirebaseAuth.instance.currentUser;
@@ -78,9 +89,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.refreshUserProfile();
 
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto de perfil actualizada')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto de perfil actualizada')),
+        );
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error subiendo imagen: $e. Revisa las reglas de Storage.')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error subiendo imagen: $e. Revisa las reglas de Storage.',
+            ),
+          ),
+        );
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }
@@ -91,6 +112,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final auth = Provider.of<AuthProvider>(context);
     final iceProvider = Provider.of<IceCreamProvider>(context);
     final userModel = auth.userModel;
+
+    // Si no hay usuario, redirigir a la ruta inicial
+    if (userModel == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushReplacementNamed('/');
+      });
+      return const Scaffold();
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -113,18 +142,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Si index == 3, nos quedamos aquí
         },
       ),
-      body: userModel == null
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      body: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // --- Tarjeta de Perfil ---
                   Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 24.0,
+                        horizontal: 16.0,
+                      ),
                       child: Column(
                         children: [
                           Stack(
@@ -135,8 +167,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 backgroundColor: Colors.grey[200],
                                 // Muestra la foto de perfil o una imagen por defecto
                                 backgroundImage: userModel.photoUrl.isNotEmpty
-                                    ? NetworkImage(userModel.photoUrl) as ImageProvider
-                                    : const AssetImage('assets/logo_gelato.png'),
+                                    ? NetworkImage(userModel.photoUrl)
+                                          as ImageProvider
+                                    : const AssetImage(
+                                        'assets/logo_gelato.png',
+                                      ),
                               ),
                               Positioned(
                                 right: 0,
@@ -151,24 +186,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         },
                                   child: Container(
                                     padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(color: Colors.pink, borderRadius: BorderRadius.circular(8)),
+                                    decoration: BoxDecoration(
+                                      color: Colors.pink,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
                                     child: _isUploading
-                                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                        : const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                                        ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.camera_alt,
+                                            color: Colors.white,
+                                            size: 18,
+                                          ),
                                   ),
                                 ),
-                              )
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
-                          Text(userModel.displayName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+                          Text(
+                            userModel.displayName,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                           const SizedBox(height: 8),
-                          Text(userModel.email, style: TextStyle(color: Colors.grey[700])),
+                          Text(
+                            userModel.email,
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
                           // Badge de Admin (si aplica)
                           if (userModel.isAdmin) ...[
                             const SizedBox(height: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.purple.shade100,
                                 borderRadius: BorderRadius.circular(12),
@@ -176,7 +237,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.admin_panel_settings, size: 16, color: Colors.purple[700]),
+                                  Icon(
+                                    Icons.admin_panel_settings,
+                                    size: 16,
+                                    color: Colors.purple[700],
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     'Admin',
@@ -196,37 +261,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 16),
                   // --- Tarjeta de Estadísticas ---
                   Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Statistics', style: TextStyle(color: Colors.pink[700], fontSize: 16, fontWeight: FontWeight.w600)),
+                          Text(
+                            'Statistics',
+                            style: TextStyle(
+                              color: Colors.pink[700],
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(color: Colors.pink[50], borderRadius: BorderRadius.circular(12)),
+                            decoration: BoxDecoration(
+                              color: Colors.pink[50],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             child: Row(
                               children: [
                                 Icon(Icons.icecream, color: Colors.pink),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text('Ice Creams Created', style: TextStyle(color: Colors.grey[700])),
+                                      Text(
+                                        'Ice Creams Created',
+                                        style: TextStyle(
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
                                       const SizedBox(height: 6),
                                       Text(
                                         '${iceProvider.iceCreams.where((c) => c.authorId == userModel.uid).length}',
-                                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                                        style: const TextStyle(
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ],
                                   ),
-                                )
+                                ),
                               ],
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -234,19 +320,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 24),
                   // --- Botón de Cerrar Sesión ---
                   OutlinedButton.icon(
-                    onPressed: () async {
-                      await auth.signOut();
-                      if (mounted) {
-                        // Navegar a /login y eliminar todas las rutas anteriores
-                        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-                      }
+                    onPressed: () {
+                      // Primero vamos a la ruta inicial '/'
+                      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                      // El signOut cambiará el estado y AuthWrapper manejará la navegación
+                      auth.signOut();
                     },
                     icon: const Icon(Icons.logout, color: Colors.red),
                     label: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 12.0),
-                      child: Text('Log Out', style: TextStyle(color: Colors.red, fontSize: 16)),
+                      child: Text(
+                        'Log Out',
+                        style: TextStyle(color: Colors.red, fontSize: 16),
+                      ),
                     ),
-                    style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.red),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ],
               ),

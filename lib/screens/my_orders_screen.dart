@@ -7,7 +7,7 @@ import '../services/order_service.dart';
 import '../models/order_model.dart';
 
 class MyOrdersScreen extends StatefulWidget {
-  const MyOrdersScreen({Key? key}) : super(key: key);
+  const MyOrdersScreen({super.key});
 
   @override
   State<MyOrdersScreen> createState() => _MyOrdersScreenState();
@@ -21,9 +21,12 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
     for (final order in orders) {
       final old = _prevStatus[order.id] ?? '';
       if (old.isNotEmpty && old != order.status) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Order "${order.items.isNotEmpty ? order.items[0]['name'] : ''}" changed to ${order.status}'))
-        );
+        // Asegurarse de que el widget aún esté montado antes de mostrar el SnackBar
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Order "${order.items.isNotEmpty ? order.items[0]['name'] : ''}" changed to ${order.status}'))
+          );
+        }
       }
       _prevStatus[order.id!] = order.status;
     }
@@ -49,8 +52,14 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
 
           final orders = snapshot.data ?? [];
           
-          // Verificar cambios de estado
-          _checkStatusChange(context, orders);
+          // --- ✅ AQUÍ ESTÁ LA CORRECCIÓN ---
+          // Se programa la verificación de estado para después del 'build'
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) { // Verificar si el widget sigue en el árbol
+              _checkStatusChange(context, orders);
+            }
+          });
+          // --- FIN DE LA CORRECCIÓN ---
           
           if (orders.isEmpty) {
             return const Center(child: Text('No orders found'));
@@ -67,7 +76,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
       floatingActionButton: kDebugMode
           ? FloatingActionButton.extended(
               onPressed: () => Navigator.pushNamed(context, '/create_order'),
-              label: const Text('Create Order (dev)'),
+              label: const Text('Create Order'),
               icon: const Icon(Icons.add_shopping_cart),
             )
           : null,
@@ -85,7 +94,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
           }
         },
       ),
-      );
+    );
   }
 
   Widget _buildOrderCard(BuildContext context, OrderModel order, OrderService service) {
@@ -100,7 +109,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
+          Row(children: [
             const Icon(Icons.icecream),
             const SizedBox(width: 8),
             Expanded(child: Text(order.items.isNotEmpty ? order.items[0]['name'] : 'Order', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600))),
@@ -121,6 +130,8 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
               style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
               onPressed: () async {
                 await service.cancelOrder(order.id!);
+                // Esta llamada al SnackBar SÍ es correcta porque está
+                // dentro de un callback (onPressed), no de un 'build'.
                 if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Order cancelled')));
               },
               child: const Text('Cancel Order'),

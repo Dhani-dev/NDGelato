@@ -14,7 +14,7 @@ class MyIceCreamsScreen extends StatefulWidget {
 }
 
 class _MyIceCreamsScreenState extends State<MyIceCreamsScreen> {
-  int _currentIndex = 1;
+  final int _currentIndex = 1;
 
   @override
   void initState() {

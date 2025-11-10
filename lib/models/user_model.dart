@@ -11,7 +11,7 @@ class UserModel extends Equatable {
   
   bool get isAdmin => role == 'admin';
 
-  UserModel({
+  const UserModel({
     required this.uid,
     required this.email,
     required this.displayName,

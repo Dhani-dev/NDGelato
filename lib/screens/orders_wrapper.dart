@@ -5,7 +5,7 @@ import 'orders_admin_screen.dart';
 import 'my_orders_screen.dart';
 
 class OrdersWrapper extends StatelessWidget {
-  const OrdersWrapper({Key? key}) : super(key: key);
+  const OrdersWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {

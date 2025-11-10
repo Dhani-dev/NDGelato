@@ -8,7 +8,7 @@ import '../services/order_service.dart';
 import '../models/order_model.dart';
 
 class CreateOrderScreen extends StatelessWidget {
-  CreateOrderScreen({Key? key}) : super(key: key);
+  CreateOrderScreen({super.key});
 
   final OrderService _service = OrderService();
 
@@ -92,11 +92,11 @@ class CreateOrderScreen extends StatelessWidget {
                             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error placing order: $e')));
                           }
                         },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.pink),
                   child: const Padding(
                     padding: EdgeInsets.symmetric(vertical: 14.0),
                     child: Text('Place Order', style: TextStyle(fontSize: 16)),
                   ),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.pink),
                 ),
               ],
             ),

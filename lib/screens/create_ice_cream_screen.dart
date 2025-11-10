@@ -17,8 +17,8 @@ class CreateIceCreamScreen extends StatefulWidget {
 class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  List<String> _selectedFlavors = [];
-  List<String> _selectedToppings = [];
+  final List<String> _selectedFlavors = [];
+  final List<String> _selectedToppings = [];
   String _base = 'Cone';
   static const int maxFlavors = 3;
   static const int maxToppings = 4; // Limit to 4 toppings per spec

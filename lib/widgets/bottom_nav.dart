@@ -35,8 +35,9 @@ class BottomNav extends StatelessWidget {
 
           // Fallback navigation (idempotent): map index -> route
           String route = '/';
-          if (index == 0) route = '/';
-          else if (index == 1) route = '/my_ice_creams';
+          if (index == 0) {
+            route = '/';
+          } else if (index == 1) route = '/my_ice_creams';
           else if (index == 2) route = '/orders';
           else if (index == 3) route = '/profile';
 
