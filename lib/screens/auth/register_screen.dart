@@ -30,14 +30,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        
-        // Iniciar sesión automáticamente después del registro
+
+        // El usuario ya queda autenticado por Firebase tras createUserWithEmailAndPassword,
+        // así que navegamos al Home directamente.
         if (mounted) {
-          await authProvider.signIn(
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-          );
-          
           Navigator.of(context).pushReplacementNamed('/');
         }
 
@@ -244,7 +240,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
       ),
-    );
+    ); 
   }
 
   // Helper para el diseño de los TextField

@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/ice_cream_preview_widget.dart';
+import '../widgets/notification_bell.dart';
 
 class MyIceCreamsScreen extends StatefulWidget {
   const MyIceCreamsScreen({super.key});
@@ -50,6 +51,7 @@ class _MyIceCreamsScreenState extends State<MyIceCreamsScreen> {
           ).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.bold),
         ),
         actions: [
+          const NotificationBell(),
           // LOGO DE ND-GELATO (Copia de home_screen.dart)
           Padding(
             padding: const EdgeInsets.only(right: 16.0),

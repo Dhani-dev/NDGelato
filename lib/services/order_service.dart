@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/order_model.dart';
+import 'notification_service.dart';
 
 class OrderService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -16,11 +17,50 @@ class OrderService {
 
   Future<String> createOrder(OrderModel order) async {
     final docRef = await _firestore.collection(collection).add(order.toMap());
+
+    // Notify admins that a new order was created
+    try {
+      final notif = NotificationService();
+      await notif.createNotification(
+        title: 'New order',
+        body: 'A new order was created by ${order.customerName}',
+        target: 'admin',
+      );
+    } catch (e) {
+      // ignore
+    }
+
     return docRef.id;
   }
 
   Future<void> updateStatus(String id, String status) async {
     await _firestore.collection(collection).doc(id).update({'status': status});
+    // After status update, notify the customer
+    try {
+      final doc = await _firestore.collection(collection).doc(id).get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        final customerId = data['customerId'] as String?;
+        final customerName = data['customerName'] as String? ?? '';
+        final notif = NotificationService();
+        await notif.createNotification(
+          title: 'Order status updated',
+          body: 'Your order status is now: $status',
+          target: 'user',
+          userId: customerId,
+        );
+        // If cancelled, also notify admins
+        if (status == 'cancelled') {
+          await notif.createNotification(
+            title: 'Order cancelled',
+            body: 'Order from $customerName was cancelled',
+            target: 'admin',
+          );
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
   }
 
   Future<void> cancelOrder(String id) async {

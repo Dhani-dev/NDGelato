@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/auth_service.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -40,6 +41,33 @@ class _LoginScreenState extends State<LoginScreen> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _resetPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Por favor, introduce tu correo para restablecer la contraseña'),
+        backgroundColor: Colors.orange,
+      ));
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      await AuthService().sendPasswordResetEmail(email);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Correo de restablecimiento enviado. Revisa tu bandeja.'),
+        backgroundColor: Colors.green,
+      ));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(e.toString().replaceFirst('Exception: ', '')),
+        backgroundColor: Colors.red,
+      ));
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -132,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 30),
 
-                        // Botón Log In
+            // Botón Log In
                         _isLoading
                             ? const CircularProgressIndicator(color: Color(0xFFDC2483))
                             : Container(
@@ -173,6 +201,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 20),
+
+                        // Enlace para restablecer contraseña
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: _resetPassword,
+                            child: const Text('Forgot password?'),
+                          ),
+                        ),
 
                         // Enlace Register
                         GestureDetector(

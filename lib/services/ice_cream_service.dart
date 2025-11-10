@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import '../models/ice_cream_model.dart';
+import 'notification_service.dart';
 
 class IceCreamService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -22,6 +23,18 @@ class IceCreamService {
         ...iceCream.toMap(),
         if (imageUrl != null) 'imageUrl': imageUrl,
       });
+
+      // Create a notification for all users that a new ice cream was created
+      try {
+        final notif = NotificationService();
+        await notif.createNotification(
+          title: 'New ice cream created',
+          body: '${iceCream.name} was just added!',
+          target: 'all',
+        );
+      } catch (e) {
+        // Non-blocking: ignore notification failure
+      }
 
       return docRef.id;
     } catch (e) {

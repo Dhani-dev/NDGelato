@@ -11,6 +11,8 @@ import '../utils/file_utils.dart'; // Asegúrate de que esta utilidad funcione c
 
 import '../providers/auth_provider.dart';
 import '../providers/ice_cream_provider.dart';
+import '../services/auth_service.dart';
+import '../widgets/notification_bell.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -128,6 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         elevation: 0,
         centerTitle: true,
         foregroundColor: Colors.black,
+        actions: const [NotificationBell()],
       ),
       bottomNavigationBar: BottomNav(
         currentIndex: 3, // Profile es el índice 3
@@ -216,6 +219,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
                             ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextButton.icon(
+                            onPressed: () async {
+                              final newName = await _editDisplayName(context, userModel.displayName);
+                              if (newName != null && newName.trim().isNotEmpty) {
+                                final authService = AuthService();
+                                try {
+                                  await authService.updateUserProfile(uid: userModel.uid, displayName: newName.trim());
+                                  // Refresh provider
+                                  await Provider.of<AuthProvider>(context, listen: false).refreshUserProfile();
+                                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Display name updated')));
+                                } catch (e) {
+                                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                                }
+                              }
+                            },
+                            icon: const Icon(Icons.edit, size: 16),
+                            label: const Text('Edit name'),
                           ),
                           const SizedBox(height: 8),
                           Text(
@@ -344,6 +366,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  Future<String?> _editDisplayName(BuildContext context, String current) async {
+    final controller = TextEditingController(text: current);
+    return showDialog<String?>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit display name'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(labelText: 'Display name'),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.of(context).pop(controller.text), child: const Text('Save')),
+          ],
+        );
+      },
     );
   }
 }

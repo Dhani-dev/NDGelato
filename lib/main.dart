@@ -8,6 +8,7 @@ import 'firebase_options.dart'; // Tu archivo generado
 import 'providers/auth_provider.dart';
 import 'providers/ice_cream_provider.dart';
 import 'providers/order_provider.dart';
+import 'providers/notification_provider.dart';
 
 import 'screens/auth/login_screen.dart';
 import 'screens/home_screen.dart';
@@ -39,6 +40,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => IceCreamProvider()),
         ChangeNotifierProvider(create: (context) => OrderProvider()),
+        ChangeNotifierProvider(create: (context) => NotificationProvider()),
       ],
       child: const MyApp(),
     ),

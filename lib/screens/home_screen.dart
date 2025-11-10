@@ -5,6 +5,7 @@ import '../widgets/bottom_nav.dart';
 import '../widgets/ice_cream_preview_widget.dart';
 import '../providers/ice_cream_provider.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/notification_bell.dart';
 
 // Asegúrate de importar tu modelo de helado si es necesario.
 // import '../models/ice_cream_model.dart';
@@ -181,6 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
+          const NotificationBell(),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: SizedBox(

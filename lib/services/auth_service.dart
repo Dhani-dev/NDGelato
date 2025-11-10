@@ -103,6 +103,17 @@ class AuthService {
     await _auth.signOut();
   }
 
+  // Enviar correo para restablecer contraseña
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_handleAuthError(e.code));
+    } catch (e) {
+      throw Exception('Error sending password reset email: $e');
+    }
+  }
+
   // -------------------------
   // Métodos de Perfil (Firestore)
   // -------------------------
@@ -118,6 +129,23 @@ class AuthService {
     } catch (e) {
       print('Error al obtener perfil de usuario: $e');
       return null;
+    }
+  }
+
+  // Actualizar el displayName (y opcionalmente otros campos) del usuario
+  Future<void> updateUserProfile({required String uid, required String displayName}) async {
+    try {
+      // Actualizar en Firestore
+      await _db.collection('users').doc(uid).update({'displayName': displayName});
+
+      // Actualizar en Firebase Auth
+      final current = _auth.currentUser;
+      if (current != null && current.uid == uid) {
+        await current.updateDisplayName(displayName);
+        await current.reload();
+      }
+    } catch (e) {
+      throw Exception('Error updating profile: $e');
     }
   }
 
