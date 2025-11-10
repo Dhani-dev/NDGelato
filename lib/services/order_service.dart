@@ -23,7 +23,7 @@ class OrderService {
       final notif = NotificationService();
       await notif.createNotification(
         title: 'New order',
-        body: 'A new order was created by ${order.customerName}',
+        body: 'Order #${order.orderNumber} created by ${order.customerName}',
         target: 'admin',
       );
     } catch (e) {
@@ -42,10 +42,11 @@ class OrderService {
         final data = doc.data() as Map<String, dynamic>;
         final customerId = data['customerId'] as String?;
         final customerName = data['customerName'] as String? ?? '';
+        final orderNumber = data['orderNumber'] as int? ?? 0;
         final notif = NotificationService();
         await notif.createNotification(
           title: 'Order status updated',
-          body: 'Your order status is now: $status',
+          body: 'Order #$orderNumber status is now: $status',
           target: 'user',
           userId: customerId,
         );
@@ -53,7 +54,7 @@ class OrderService {
         if (status == 'cancelled') {
           await notif.createNotification(
             title: 'Order cancelled',
-            body: 'Order from $customerName was cancelled',
+            body: 'Order #$orderNumber from $customerName was cancelled',
             target: 'admin',
           );
         }
@@ -65,5 +66,23 @@ class OrderService {
 
   Future<void> cancelOrder(String id) async {
     await _firestore.collection(collection).doc(id).update({'status': 'cancelled'});
+
+    // Notify admins that a user cancelled an order
+    try {
+      final doc = await _firestore.collection(collection).doc(id).get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        final customerName = data['customerName'] as String? ?? '';
+        final orderNumber = data['orderNumber'] as int? ?? 0;
+        final notif = NotificationService();
+        await notif.createNotification(
+          title: 'Order cancelled',
+          body: 'Order #$orderNumber from $customerName was cancelled by the user',
+          target: 'admin',
+        );
+      }
+    } catch (e) {
+      // ignore notification errors
+    }
   }
 }

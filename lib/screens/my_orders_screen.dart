@@ -16,16 +16,24 @@ class MyOrdersScreen extends StatefulWidget {
 class _MyOrdersScreenState extends State<MyOrdersScreen> {
   final OrderService _service = OrderService();
   final Map<String, String> _prevStatus = {};
+  // Track orders cancelled locally to avoid showing duplicate snackbars
+  final Set<String> _localCancelled = {};
 
   void _checkStatusChange(BuildContext context, List<OrderModel> orders) {
     for (final order in orders) {
       final old = _prevStatus[order.id] ?? '';
       if (old.isNotEmpty && old != order.status) {
-        // Asegurarse de que el widget aún esté montado antes de mostrar el SnackBar
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Order "${order.items.isNotEmpty ? order.items[0]['name'] : ''}" changed to ${order.status}'))
-          );
+        // If this status change was caused locally (e.g., user tapped Cancel),
+        // skip showing the stream-based SnackBar because the callback already showed one.
+        if (_localCancelled.contains(order.id)) {
+          _localCancelled.remove(order.id);
+        } else {
+          // Asegurarse de que el widget aún esté montado antes de mostrar el SnackBar
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Order "${order.items.isNotEmpty ? order.items[0]['name'] : ''}" changed to ${order.status}'))
+            );
+          }
         }
       }
       _prevStatus[order.id!] = order.status;
@@ -129,6 +137,8 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
               onPressed: () async {
+                // Mark local cancellation so the stream listener doesn't duplicate the snackbar
+                _localCancelled.add(order.id!);
                 await service.cancelOrder(order.id!);
                 // Esta llamada al SnackBar SÍ es correcta porque está
                 // dentro de un callback (onPressed), no de un 'build'.

@@ -160,25 +160,57 @@ class _MyIceCreamsScreenState extends State<MyIceCreamsScreen> {
                                   ],
                                 ),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor,
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                child: Text(
-                                  '\$${(iceCream.price ?? 0.0).toStringAsFixed(2)}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium!
-                                      .copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryColor,
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    child: Text(
+                                      '\$${(iceCream.price ?? 0.0).toStringAsFixed(2)}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium!
+                                          .copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  // Delete button for user's own ice creams
+                                  IconButton(
+                                    tooltip: 'Delete ice cream',
+                                    icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                                    onPressed: () async {
+                                      final confirmed = await showDialog<bool>(
+                                        context: context,
+                                        builder: (ctx) => AlertDialog(
+                                          title: const Text('Delete ice cream?'),
+                                          content: const Text('This will permanently delete your ice cream.'),
+                                          actions: [
+                                            TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
+                                            TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Delete')),
+                                          ],
+                                        ),
+                                      );
+                                      if (confirmed == true) {
+                                        try {
+                                          await Provider.of<IceCreamProvider>(context, listen: false).deleteIceCream(iceCream.id);
+                                          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ice cream deleted')));
+                                        } catch (e) {
+                                          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error deleting: $e')));
+                                        }
+                                      }
+                                    },
+                                  ),
+                                ],
                               ),
                             ],
                           ),
