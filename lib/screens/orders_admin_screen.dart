@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/bottom_nav.dart';
 // Simple date formatting without adding new package
 import '../services/order_service.dart';
+import '../utils/snack_utils.dart';
 import '../models/order_model.dart';
 
 class OrdersAdminScreen extends StatefulWidget {
@@ -191,7 +192,7 @@ class _OrdersAdminScreenState extends State<OrdersAdminScreen> {
           style: ElevatedButton.styleFrom(backgroundColor: Colors.pink),
           onPressed: () async {
             await _service.updateStatus(order.id!, next);
-            if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Order updated: ${order.items.isNotEmpty ? order.items[0]['name'] : ''} -> $next')));
+                  if (mounted) showStyledSnackBar(context, title: 'Order updated', message: 'Order "${order.items.isNotEmpty ? order.items[0]['name'] : ''}" -> ${_labelFor(next)}', success: next == 'paid');
           },
           child: Text('Mark as: ${_labelFor(next)}'),
         ),
@@ -204,7 +205,7 @@ class _OrdersAdminScreenState extends State<OrdersAdminScreen> {
       buttons.add(OutlinedButton(
         onPressed: () async {
           await _service.cancelOrder(order.id!);
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Order cancelled')));
+          if (mounted) showStyledSnackBar(context, title: 'Order cancelled', message: 'Order #${order.orderNumber} cancelled', success: false);
         },
         child: const Text('Cancel'),
       ));

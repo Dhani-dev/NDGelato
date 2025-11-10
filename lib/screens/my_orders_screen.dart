@@ -18,26 +18,86 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
   final Map<String, String> _prevStatus = {};
   // Track orders cancelled locally to avoid showing duplicate snackbars
   final Set<String> _localCancelled = {};
+  // Track the last status we already showed a notification for (per order)
+  final Map<String, String> _lastNotifiedStatus = {};
 
   void _checkStatusChange(BuildContext context, List<OrderModel> orders) {
     for (final order in orders) {
       final old = _prevStatus[order.id] ?? '';
       if (old.isNotEmpty && old != order.status) {
-        // If this status change was caused locally (e.g., user tapped Cancel),
-        // skip showing the stream-based SnackBar because the callback already showed one.
-        if (_localCancelled.contains(order.id)) {
+        // Avoid duplicate notifications: if we've already shown a notification
+        // for this exact order/status, skip it.
+        final lastNotified = _lastNotifiedStatus[order.id];
+        if (lastNotified == order.status) {
+          // already notified for this status
+        } else if (_localCancelled.contains(order.id)) {
+          // If this status change was caused locally (e.g., user tapped Cancel),
+          // mark as notified and remove the local flag without showing another snackbar.
+          _lastNotifiedStatus[order.id!] = order.status;
           _localCancelled.remove(order.id);
         } else {
-          // Asegurarse de que el widget aún esté montado antes de mostrar el SnackBar
+          // Show a single styled SnackBar for the status change
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Order "${order.items.isNotEmpty ? order.items[0]['name'] : ''}" changed to ${order.status}'))
-            );
+            _showOrderSnackBar(context,
+                title: 'Order updated',
+                message:
+                    'The order "${order.items.isNotEmpty ? order.items[0]['name'] : ''}" has been marked as ${order.status}.',
+                success: order.status == 'paid');
+            _lastNotifiedStatus[order.id!] = order.status;
           }
         }
       }
       _prevStatus[order.id!] = order.status;
     }
+  }
+
+  void _showOrderSnackBar(BuildContext context,
+      {required String title, required String message, bool success = false}) {
+    final accent = success ? Colors.green : Colors.purple;
+    final icon = success ? Icons.check_circle : Icons.info;
+
+    final content = Container(
+      decoration: BoxDecoration(
+        color: Colors.purple.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accent.withOpacity(0.6), width: 2),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 4)),
+        ],
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: accent.withOpacity(0.15), shape: BoxShape.circle),
+            child: Icon(icon, color: accent, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: accent)),
+                const SizedBox(height: 4),
+                Text(message, style: const TextStyle(color: Colors.black87)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final snack = SnackBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      behavior: SnackBarBehavior.floating,
+      content: content,
+      duration: const Duration(seconds: 4),
+    );
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(snack);
   }
 
   @override
@@ -140,9 +200,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                 // Mark local cancellation so the stream listener doesn't duplicate the snackbar
                 _localCancelled.add(order.id!);
                 await service.cancelOrder(order.id!);
-                // Esta llamada al SnackBar SÍ es correcta porque está
-                // dentro de un callback (onPressed), no de un 'build'.
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Order cancelled')));
+                // No local snackbar here: the StreamBuilder listener will show the styled notification.
               },
               child: const Text('Cancel Order'),
             )

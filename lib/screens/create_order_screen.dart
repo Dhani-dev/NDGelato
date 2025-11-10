@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../providers/order_provider.dart';
 import '../services/order_service.dart';
 import '../models/order_model.dart';
+import '../utils/snack_utils.dart';
 
 class CreateOrderScreen extends StatelessWidget {
   CreateOrderScreen({super.key});
@@ -85,11 +86,12 @@ class CreateOrderScreen extends StatelessWidget {
                             final id = await _service.createOrder(order);
                             orderProv.clear();
                             if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Order placed: $id')));
+                              // Use styled snackbar
+                              showStyledSnackBar(context, title: 'Order placed', message: 'Order placed: $id', success: true);
                               Navigator.pushReplacementNamed(context, '/orders');
                             }
                           } catch (e) {
-                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error placing order: $e')));
+                            if (context.mounted) showStyledSnackBar(context, title: 'Error', message: 'Error placing order: $e');
                           }
                         },
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.pink),
