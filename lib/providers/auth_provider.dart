@@ -20,12 +20,10 @@ class AuthProvider with ChangeNotifier {
   UserModel? get userModel => _userModel;
   AuthStatus get status => _status;
 
-  // Constructor que escucha los cambios de estado de Auth
   AuthProvider() {
     _authService.authStateChanges.listen(_onAuthStateChanged);
   }
 
-  // Maneja los cambios de estado de Firebase Auth
   Future<void> _onAuthStateChanged(User? firebaseUser) async {
     if (firebaseUser == null) {
       _user = null;
@@ -33,28 +31,22 @@ class AuthProvider with ChangeNotifier {
       _status = AuthStatus.unauthenticated;
     } else {
       _user = firebaseUser;
-      // Obtener el perfil completo de Firestore
       _userModel = await _authService.getUserProfile(firebaseUser.uid);
       _status = AuthStatus.authenticated;
     }
     notifyListeners();
   }
 
-  // -------------------------
-  // Lógica de Autenticación
-  // -------------------------
-
   Future<void> signIn({required String email, required String password}) async {
     try {
       _status = AuthStatus.uninitialized;
       notifyListeners();
       await _authService.signInWithEmailAndPassword(email: email, password: password);
-      // El _onAuthStateChanged manejará la actualización final del estado
     } catch (e) {
       // Revertir a no autenticado en caso de error
       _status = AuthStatus.unauthenticated;
       notifyListeners();
-      rethrow; // Re-lanzar el error para mostrarlo en la UI
+      rethrow;
     }
   }
 
@@ -71,11 +63,10 @@ class AuthProvider with ChangeNotifier {
         password: password,
         displayName: displayName,
       );
-      // El _onAuthStateChanged manejará la actualización final del estado
     } catch (e) {
       _status = AuthStatus.unauthenticated;
       notifyListeners();
-      rethrow; // Re-lanzar el error
+      rethrow;
     }
   }
 
@@ -85,13 +76,6 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // -------------------------
-  // Lógica de Perfil (futuras implementaciones)
-  // -------------------------
-
-  // En el futuro, aquí podríamos agregar lógica para actualizar el perfil en Firestore
-  /// Fuerza la recarga del perfil de usuario desde Firestore.
-  /// Útil cuando se actualiza el documento del usuario sin cambiar el estado de Auth.
   Future<void> refreshUserProfile() async {
     if (_user == null) return;
     try {

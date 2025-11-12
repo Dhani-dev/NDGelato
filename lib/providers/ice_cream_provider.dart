@@ -14,7 +14,6 @@ class IceCreamProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // Available flavors and toppings
   final List<String> availableFlavors = [
     'Strawberry',
     'Chocolate',

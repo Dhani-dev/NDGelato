@@ -1,17 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-// Para subir imágenes, agrega en pubspec.yaml:
-// firebase_storage: ^latest_version
-// import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import '../models/ice_cream_model.dart';
 import 'notification_service.dart';
 
 class IceCreamService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  // final FirebaseStorage _storage = FirebaseStorage.instance;
   final String collection = 'ice_creams';
 
-  // Create
   Future<String> createIceCream(IceCream iceCream, {File? imageFile}) async {
     try {
       String? imageUrl;

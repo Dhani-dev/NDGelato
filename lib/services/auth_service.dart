@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 
-// Este servicio maneja la comunicación con Firebase Auth y Firestore (colección 'users')
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -13,11 +12,6 @@ class AuthService {
   // Stream para detectar cambios en el estado de autenticación
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // -------------------------
-  // Métodos de Autenticación
-  // -------------------------
-
-  // 1. Registro de Usuario
   Future<UserModel> registerWithEmailAndPassword({
     required String email,
     required String password,
@@ -65,13 +59,11 @@ class AuthService {
     }
   }
 
-  // 2. Inicio de Sesión
   Future<UserModel> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
     try {
-      // 1. Iniciar sesión en Firebase Authentication
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -82,11 +74,9 @@ class AuthService {
         throw FirebaseAuthException(code: 'user-not-found');
       }
 
-      // 2. Obtener el perfil del usuario desde Firestore
       final doc = await _db.collection('users').doc(firebaseUser.uid).get();
       if (!doc.exists) {
-        // Esto no debería pasar si el registro fue exitoso, pero es una buena medida de seguridad
-        await firebaseUser.delete(); // Limpiar el registro de Auth
+        await firebaseUser.delete();
         throw Exception('Perfil de usuario no encontrado en Firestore.');
       }
 
@@ -98,12 +88,10 @@ class AuthService {
     }
   }
 
-  // 3. Cierre de Sesión
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  // Enviar correo para restablecer contraseña
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
@@ -114,11 +102,6 @@ class AuthService {
     }
   }
 
-  // -------------------------
-  // Métodos de Perfil (Firestore)
-  // -------------------------
-
-  // Obtener el modelo de usuario actual de Firestore
   Future<UserModel?> getUserProfile(String uid) async {
     try {
       final doc = await _db.collection('users').doc(uid).get();
@@ -132,7 +115,6 @@ class AuthService {
     }
   }
 
-  // Actualizar el displayName (y opcionalmente otros campos) del usuario
   Future<void> updateUserProfile({required String uid, required String displayName}) async {
     try {
       // Actualizar en Firestore

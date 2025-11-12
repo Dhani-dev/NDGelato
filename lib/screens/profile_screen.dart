@@ -7,8 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../widgets/bottom_nav.dart';
-import '../utils/file_utils.dart'; // Asegúrate de que esta utilidad funcione correctamente
-
+import '../utils/file_utils.dart';
 import '../providers/auth_provider.dart';
 import '../providers/ice_cream_provider.dart';
 import '../services/auth_service.dart';
@@ -91,12 +90,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.refreshUserProfile();
 
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Foto de perfil actualizada')),
         );
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -104,6 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         );
+      }
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }

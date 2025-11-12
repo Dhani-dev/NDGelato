@@ -40,7 +40,6 @@ class _MyIceCreamsScreenState extends State<MyIceCreamsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        // Nuevo: Ajustar el AppBar para contener el logo y la acción
         toolbarHeight: 80,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -52,7 +51,6 @@ class _MyIceCreamsScreenState extends State<MyIceCreamsScreen> {
         ),
         actions: [
           const NotificationBell(),
-          // LOGO DE ND-GELATO (Copia de home_screen.dart)
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: SizedBox(
@@ -91,7 +89,6 @@ class _MyIceCreamsScreenState extends State<MyIceCreamsScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header
                         Container(
                           padding: const EdgeInsets.all(14.0),
                           decoration: BoxDecoration(
@@ -184,28 +181,63 @@ class _MyIceCreamsScreenState extends State<MyIceCreamsScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  // Delete button for user's own ice creams
                                   IconButton(
                                     tooltip: 'Delete ice cream',
-                                    icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.redAccent,
+                                    ),
                                     onPressed: () async {
                                       final confirmed = await showDialog<bool>(
                                         context: context,
                                         builder: (ctx) => AlertDialog(
-                                          title: const Text('Delete ice cream?'),
-                                          content: const Text('This will permanently delete your ice cream.'),
+                                          title: const Text(
+                                            'Delete ice cream?',
+                                          ),
+                                          content: const Text(
+                                            'This will permanently delete your ice cream.',
+                                          ),
                                           actions: [
-                                            TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
-                                            TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Delete')),
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.of(ctx).pop(false),
+                                              child: const Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.of(ctx).pop(true),
+                                              child: const Text('Delete'),
+                                            ),
                                           ],
                                         ),
                                       );
                                       if (confirmed == true) {
                                         try {
-                                          await Provider.of<IceCreamProvider>(context, listen: false).deleteIceCream(iceCream.id);
-                                          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ice cream deleted')));
+                                          await Provider.of<IceCreamProvider>(
+                                            context,
+                                            listen: false,
+                                          ).deleteIceCream(iceCream.id);
+                                          if (context.mounted)
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Ice cream deleted',
+                                                ),
+                                              ),
+                                            );
                                         } catch (e) {
-                                          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error deleting: $e')));
+                                          if (context.mounted)
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Error deleting: $e',
+                                                ),
+                                              ),
+                                            );
                                         }
                                       }
                                     },
@@ -450,6 +482,4 @@ class _MyIceCreamsScreenState extends State<MyIceCreamsScreen> {
       ),
     );
   }
-
-  // Eliminado: _buildIceCreamPreview
 }

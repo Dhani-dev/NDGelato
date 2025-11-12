@@ -16,27 +16,19 @@ class MyOrdersScreen extends StatefulWidget {
 class _MyOrdersScreenState extends State<MyOrdersScreen> {
   final OrderService _service = OrderService();
   final Map<String, String> _prevStatus = {};
-  // Track orders cancelled locally to avoid showing duplicate snackbars
   final Set<String> _localCancelled = {};
-  // Track the last status we already showed a notification for (per order)
   final Map<String, String> _lastNotifiedStatus = {};
 
   void _checkStatusChange(BuildContext context, List<OrderModel> orders) {
     for (final order in orders) {
       final old = _prevStatus[order.id] ?? '';
       if (old.isNotEmpty && old != order.status) {
-        // Avoid duplicate notifications: if we've already shown a notification
-        // for this exact order/status, skip it.
         final lastNotified = _lastNotifiedStatus[order.id];
         if (lastNotified == order.status) {
-          // already notified for this status
         } else if (_localCancelled.contains(order.id)) {
-          // If this status change was caused locally (e.g., user tapped Cancel),
-          // mark as notified and remove the local flag without showing another snackbar.
           _lastNotifiedStatus[order.id!] = order.status;
           _localCancelled.remove(order.id);
         } else {
-          // Show a single styled SnackBar for the status change
           if (mounted) {
             _showOrderSnackBar(context,
                 title: 'Order updated',
@@ -119,15 +111,13 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
           }
 
           final orders = snapshot.data ?? [];
-          
-          // --- ✅ AQUÍ ESTÁ LA CORRECCIÓN ---
+
           // Se programa la verificación de estado para después del 'build'
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) { // Verificar si el widget sigue en el árbol
               _checkStatusChange(context, orders);
             }
           });
-          // --- FIN DE LA CORRECCIÓN ---
           
           if (orders.isEmpty) {
             return const Center(child: Text('No orders found'));
@@ -140,7 +130,6 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
           );
         },
       ),
-      // Dev-only FAB to create a sample order for testing realtime behavior
       floatingActionButton: kDebugMode
           ? FloatingActionButton.extended(
               onPressed: () => Navigator.pushNamed(context, '/create_order'),
@@ -197,10 +186,8 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
               onPressed: () async {
-                // Mark local cancellation so the stream listener doesn't duplicate the snackbar
                 _localCancelled.add(order.id!);
                 await service.cancelOrder(order.id!);
-                // No local snackbar here: the StreamBuilder listener will show the styled notification.
               },
               child: const Text('Cancel Order'),
             )

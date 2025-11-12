@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// OrderModel now references a list of ice cream items instead of flavors/toppings.
 class OrderModel {
   final String? id;
   final int orderNumber;

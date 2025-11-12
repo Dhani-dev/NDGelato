@@ -31,14 +31,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
           password: _passwordController.text.trim(),
         );
 
-        // El usuario ya queda autenticado por Firebase tras createUserWithEmailAndPassword,
-        // así que navegamos al Home directamente.
         if (mounted) {
           Navigator.of(context).pushReplacementNamed('/');
         }
 
       } catch (e) {
-        // Mostrar un snackbar con el error
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString().replaceFirst('Exception: ', '')),
@@ -55,7 +52,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Gradiente de fondo replicando el diseño de Figma
     const gradient = LinearGradient(
       colors: [Color(0xFFF9E8FB), Color(0xFFE8F1F9)],
       begin: Alignment.topLeft,
@@ -76,7 +72,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             padding: const EdgeInsets.all(24.0),
             child: Column(
               children: [
-                // Contenedor blanco/claro
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
                   decoration: BoxDecoration(
@@ -95,10 +90,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        // Logo (usando un placeholder, ¡reemplázalo con tu imagen real!)
                         Image.asset(
-                          'assets/logo_gelato.png', // Asegúrate de agregar tu logo aquí
-                          height: 80,
+                          'assets/logo_gelato.png', // logoo default                          height: 80,
                         ),
                         const SizedBox(height: 20),
                         Text(
@@ -109,7 +102,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 30),
 
-                        // Campo de Nombre
                         TextFormField(
                           controller: _nameController,
                           keyboardType: TextInputType.text,
@@ -123,7 +115,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Campo de Correo Electrónico
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
@@ -141,7 +132,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Campo de Contraseña
                         TextFormField(
                           controller: _passwordController,
                           obscureText: true,
@@ -158,7 +148,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Campo de Confirmar Contraseña
                         TextFormField(
                           controller: _confirmPasswordController,
                           obscureText: true,
@@ -175,7 +164,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 30),
 
-                        // Botón Register
                         _isLoading
                             ? const CircularProgressIndicator(color: Color(0xFFDC2483))
                             : Container(
@@ -198,7 +186,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: ElevatedButton(
                             onPressed: _submit,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent, // Transparente para mostrar el gradiente
+                              backgroundColor: Colors.transparent,
                               shadowColor: Colors.transparent,
                               padding: const EdgeInsets.symmetric(vertical: 18),
                               shape: RoundedRectangleBorder(
@@ -217,10 +205,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Enlace Log In
                         GestureDetector(
                           onTap: () {
-                            Navigator.of(context).pop(); // Volver a la pantalla de Login
+                            Navigator.of(context).pop();
                           },
                           child: Text(
                             "Already have an account? Log in",
@@ -243,7 +230,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     ); 
   }
 
-  // Helper para el diseño de los TextField
   InputDecoration _inputDecoration(String label, String hint) {
     return InputDecoration(
       labelText: label,

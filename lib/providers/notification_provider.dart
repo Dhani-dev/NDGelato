@@ -19,7 +19,7 @@ class NotificationProvider with ChangeNotifier {
     });
   }
 
-  // Get notifications relevant for the current user/role
+  // Get notifications for users
   List<NotificationModel> forUser(AuthProvider auth) {
     final user = auth.userModel;
     if (user == null) return [];

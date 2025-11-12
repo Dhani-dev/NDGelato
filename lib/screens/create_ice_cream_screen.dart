@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/ice_cream_model.dart'; // Asegúrate de que este modelo exista
-import '../providers/ice_cream_provider.dart'; // Asegúrate de que este provider exista
-import '../providers/auth_provider.dart'; // Asegúrate de que este provider exista
+import '../models/ice_cream_model.dart';
+import '../providers/ice_cream_provider.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/bottom_nav.dart';
-import '../widgets/ice_cream_preview_widget.dart'; // Asegúrate de que este widget exista
+import '../widgets/ice_cream_preview_widget.dart';
 
 class CreateIceCreamScreen extends StatefulWidget {
   const CreateIceCreamScreen({super.key});
@@ -21,10 +21,9 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
   final List<String> _selectedToppings = [];
   String _base = 'Cone';
   static const int maxFlavors = 3;
-  static const int maxToppings = 4; // Limit to 4 toppings per spec
+  static const int maxToppings = 4;
   bool _isLoading = false;
 
-  // Mapa de color y abreviatura para los sabores (NECESARIO para la Preview y los Chips)
   final Map<String, dynamic> flavorData = {
     'Strawberry': {'color': Colors.pink.shade400, 'abbr': 'S'},
     'Chocolate': {'color': Colors.brown.shade700, 'abbr': 'C'},
@@ -34,13 +33,11 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
     'Mango': {
       'color': Colors.orange.shade400,
       'abbr': 'A',
-    }, // Usando A de Amarillo
+    },
     'Pistachio': {'color': Colors.green.shade400, 'abbr': 'P'},
     'Cookies & Cream': {'color': Colors.grey.shade400, 'abbr': 'K'},
-    // Asegúrate de que estos coincidan con iceCreamProvider.availableFlavors
   };
 
-  // Mapa de iconos/emojis para los toppings (NECESARIO para los Chips y la Preview)
   final Map<String, String> toppingIcons = {
     'Sprinkles': '🌈',
     'Cherry': '🍒',
@@ -50,7 +47,6 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
     'Nuts': '🌰',
     'Candy Bears': '🐻',
     'Cookie': '🍪',
-    // Asegúrate de que estos coincidan con iceCreamProvider.availableToppings
   };
 
   @override
@@ -99,7 +95,7 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        behavior: SnackBarBehavior.floating, // Para que se vea mejor
+        behavior: SnackBarBehavior.floating,
         duration: const Duration(milliseconds: 1500),
       ),
     );
@@ -110,7 +106,7 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
     if (_selectedFlavors.isEmpty) {
       _showSnackbar(
         'Please select at least one flavor.',
-      ); // Validación de sabor
+      );
       return;
     }
 
@@ -118,7 +114,6 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Calcular precio basado en sabores ($2.00 cada uno) y toppings ($1.00 cada uno)
       const basePrice = 0.00; // Precio base
       final flavorPrice = _selectedFlavors.length * 2.00; // $2.00 por sabor
       final toppingPrice = _selectedToppings.length * 1.00; // $1.00 por topping
@@ -138,7 +133,6 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
 
       if (mounted) {
         _showSnackbar('Ice cream created successfully!');
-        // Navegar a la pantalla principal o a "My Ice Creams"
         Navigator.pop(context);
       }
     } catch (e) {
@@ -170,9 +164,8 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
         builder: (context, constraints) {
           final isWide =
               constraints.maxWidth >
-              900; // layout horizontal para pantallas anchas
+              900;
 
-          // Envolvemos todo el contenido en un Form para mantener la funcionalidad de validación
           return Form(
             key: _formKey,
             child: isWide
@@ -181,12 +174,10 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // --- IZQUIERDA (Name, Base, Flavors) ---
                         Expanded(
                           flex: 2,
                           child: Column(
                             children: [
-                              // 1. Name Your Creation
                               _CustomSectionCard(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,7 +259,7 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                                       ),
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
-                                          return 'Please enter a name'; // NOTIFICACIÓN DE NOMBRE AQUÍ
+                                          return 'Please enter a name';
                                         }
                                         return null;
                                       },
@@ -276,7 +267,6 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                                   ],
                                 ),
                               ),
-                              // 2. Choose Your Base
                               _CustomSectionCard(
                                 title: 'Choose Your Base',
                                 child: Row(
@@ -299,7 +289,6 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                                   ],
                                 ),
                               ),
-                              // 3. Select Flavors
                               _CustomSectionCard(
                                 title: 'Select Flavors (Max $maxFlavors)',
                                 child: Wrap(
@@ -327,7 +316,6 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                           ),
                         ),
 
-                        // --- CENTRO (Preview & Button) ---
                         Expanded(
                           flex: 1,
                           child: _CustomSectionCard(
@@ -338,22 +326,20 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                             ),
                             child: Column(
                               children: [
-                                // --- Helado Preview ---
                                 IceCreamPreviewWidget(
                                   base: _base,
                                   flavors: _selectedFlavors,
                                   toppings: _selectedToppings,
                                   size:
-                                      200, // Ajuste un tamaño grande para la creación
+                                      200,
                                   flavorData:
-                                      flavorData, // Pasamos los datos de color/abbr
+                                      flavorData,
                                   toppingIcons:
-                                      toppingIcons, // Pasamos los datos de iconos
+                                      toppingIcons,
                                 ),
 
                                 const SizedBox(height: 32),
 
-                                // --- Botón de Creación ---
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
@@ -388,12 +374,10 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                           ),
                         ),
 
-                        // --- DERECHA (Toppings & Summary) ---
                         Expanded(
                           flex: 2,
                           child: Column(
                             children: [
-                              // 5. Add Toppings
                               _CustomSectionCard(
                                 title: 'Add Toppings (Max $maxToppings)',
                                 child: Wrap(
@@ -413,14 +397,13 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                                 ),
                               ),
 
-                              // 6. Your Selection (Resumen de Chips en la parte inferior)
+                              
                               _CustomSectionCard(
                                 title:
                                     'Your Selection (${_selectedFlavors.length}/$maxFlavors)',
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Flavors
                                     Text(
                                       'Flavors:',
                                       style: Theme.of(context)
@@ -446,7 +429,7 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
 
                                     const SizedBox(height: 16),
 
-                                    // Toppings
+                                    
                                     Text(
                                       'Toppings (${_selectedToppings.length}/$maxToppings):',
                                       style: Theme.of(context)
@@ -478,15 +461,13 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                       ],
                     ),
                   )
-                // Layout normal (mobile/default)
                 : SingleChildScrollView(
                     padding: const EdgeInsets.only(
                       bottom: 80,
-                    ), // Espacio para el Bottom Nav
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 1. Name Your Creation
                         _CustomSectionCard(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -557,7 +538,7 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please enter a name'; // NOTIFICACIÓN DE NOMBRE AQUÍ
+                                    return 'Please enter a name';
                                   }
                                   return null;
                                 },
@@ -566,7 +547,6 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                           ),
                         ),
 
-                        // 2. Choose Your Base
                         _CustomSectionCard(
                           title: 'Choose Your Base',
                           child: Row(
@@ -588,7 +568,6 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                           ),
                         ),
 
-                        // 3. Select Flavors
                         _CustomSectionCard(
                           title: 'Select Flavors (Max $maxFlavors)',
                           child: Wrap(
@@ -611,7 +590,6 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                           ),
                         ),
 
-                        // 4. Preview Section (Incluye el botón de guardar en el layout móvil)
                         _CustomSectionCard(
                           title: 'Preview',
                           padding: const EdgeInsets.symmetric(vertical: 20),
@@ -623,16 +601,15 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                                 flavors: _selectedFlavors,
                                 toppings: _selectedToppings,
                                 size:
-                                    200, // Ajuste un tamaño grande para la creación
+                                    200,
                                 flavorData:
-                                    flavorData, // Pasamos los datos de color/abbr
+                                    flavorData,
                                 toppingIcons:
-                                    toppingIcons, // Pasamos los datos de iconos
+                                    toppingIcons,
                               ),
 
                               const SizedBox(height: 32),
 
-                              // --- Botón de Creación ---
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
@@ -666,16 +643,14 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                           ),
                         ),
 
-                        // 5. Add Toppings
-                        // 4. Add Toppings
                         _CustomSectionCard(
                           title: 'Add Toppings (Max $maxToppings)',
                           child: SizedBox(
                             width: double
-                                .infinity, // <--- 1. Fuerza el ancho máximo
+                                .infinity,
                             child: Wrap(
                               alignment: WrapAlignment
-                                  .center, // <--- 2. Centra los chips horizontalmente
+                                  .center,
                               spacing: 12,
                               runSpacing: 12,
                               children: iceCreamProvider.availableToppings.map((
@@ -694,19 +669,14 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
                           ),
                         ),
 
-                        // 6. Your Selection (Resumen de Chips en la parte inferior)
                         _CustomSectionCard(
                           title:
                               'Your Selection (${_selectedFlavors.length}/$maxFlavors)',
                           child: SizedBox(
-                            // *** Esto fuerza a la Column a ocupar todo el ancho disponible de la tarjeta ***
                             width: double.infinity,
                             child: Column(
-                              // crossAxisAlignment: CrossAxisAlignment.start asegura que los textos
-                              // y los Wraps se alineen a la izquierda dentro del nuevo ancho.
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Flavors
                                 Text(
                                   'Flavors:',
                                   style: Theme.of(context).textTheme.bodyLarge!
@@ -728,7 +698,6 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
 
                                 const SizedBox(height: 16),
 
-                                // Toppings
                                 Text(
                                   'Toppings (${_selectedToppings.length}/$maxToppings):',
                                   style: Theme.of(context).textTheme.bodyLarge!
@@ -775,8 +744,6 @@ class _CreateIceCreamScreenState extends State<CreateIceCreamScreen> {
   }
 }
 
-// --- WIDGETS AUXILIARES (Sin Cambios) ---
-
 class _CustomSectionCard extends StatelessWidget {
   final String? title;
   final Widget child;
@@ -793,7 +760,7 @@ class _CustomSectionCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Container(
-        width: double.infinity, // ✅ Ocupa todo el ancho disponible
+        width: double.infinity,
         padding: padding,
         decoration: BoxDecoration(
           color: Colors.white,
@@ -956,7 +923,7 @@ class _ToppingChip extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(8),
-        width: 80, // Ancho fijo para mantener la uniformidad
+        width: 80,
         decoration: BoxDecoration(
           color: isSelected
               ? AppTheme.primaryColor.withOpacity(0.1)

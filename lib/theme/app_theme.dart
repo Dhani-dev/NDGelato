@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   static const primaryColor = Color(0xFFFF2E93);
-  static const accentColor = Color(0xFFE50074); // Nuevo color para acentos (p. ej. pink más fuerte)
+  static const accentColor = Color(0xFFE50074);
   static const secondaryColor = Color(0xFFF99D00);
   static const backgroundColor = Color(0xFFF9F9F9);
   static const cardBackgroundColor = Colors.white;

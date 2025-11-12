@@ -73,7 +73,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Gradiente de fondo replicando el diseño de Figma
     const gradient = LinearGradient(
       colors: [Color(0xFFF9E8FB), Color(0xFFE8F1F9)],
       begin: Alignment.topLeft,
@@ -88,7 +87,6 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: const EdgeInsets.all(24.0),
             child: Column(
               children: [
-                // Contenedor blanco/claro
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
                   decoration: BoxDecoration(
@@ -107,7 +105,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        // Logo (usando un placeholder, ¡reemplázalo con tu imagen real!)
                         Image.asset(
                           'assets/logo_gelato.png',
                           height: 100,
@@ -143,7 +140,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Campo de Contraseña
                         TextFormField(
                           controller: _passwordController,
                           obscureText: true,
@@ -160,7 +156,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 30),
 
-            // Botón Log In
                         _isLoading
                             ? const CircularProgressIndicator(color: Color(0xFFDC2483))
                             : Container(
@@ -183,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: ElevatedButton(
                             onPressed: _submit,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent, // Transparente para mostrar el gradiente
+                              backgroundColor: Colors.transparent,
                               shadowColor: Colors.transparent,
                               padding: const EdgeInsets.symmetric(vertical: 18),
                               shape: RoundedRectangleBorder(
@@ -211,7 +206,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
 
-                        // Enlace Register
                         GestureDetector(
                           onTap: () {
                             Navigator.of(context).push(
@@ -239,7 +233,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Helper para el diseño de los TextField
   InputDecoration _inputDecoration(String label, String hint) {
     return InputDecoration(
       labelText: label,

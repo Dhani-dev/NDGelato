@@ -7,9 +7,6 @@ import '../providers/ice_cream_provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/notification_bell.dart';
 
-// Asegúrate de importar tu modelo de helado si es necesario.
-// import '../models/ice_cream_model.dart';
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -32,7 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
     ).startListeningToIceCreams();
   }
 
-  // Widget para la sección de búsqueda y filtros (separado para la organización)
   Widget _buildFilterControls(BuildContext context, IceCreamProvider provider) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -71,7 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          // Filtros Dropdown
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -204,10 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
         ],
       ),
-      // --- Cambio clave: Usar ListView como cuerpo para que todo se deslice ---
       body: ListView(
-        // Desactivamos el padding automático si es necesario, pero lo dejamos por defecto
-        // crossAxisAlignment: CrossAxisAlignment.start, // No aplicable a ListView
         children: [
           // Título
           Padding(
@@ -220,11 +212,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Controles de Búsqueda y Filtro (Ahora dentro del scroll)
           _buildFilterControls(context, iceCreamProvider),
           const SizedBox(height: 16),
 
-          // Contenido principal de la lista de helados
           isLoading
               ? const Center(child: CircularProgressIndicator())
               : filteredIceCreams.isEmpty
@@ -237,7 +227,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     )
-                  // --- Implementación Responsive con LayoutBuilder y GridView ---
                   : LayoutBuilder(
                       builder: (context, constraints) {
                         // Determina el número de columnas basado en el ancho disponible
@@ -252,26 +241,21 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisCount = 1; // Teléfono móvil (diseño original)
                         }
 
-                        // El GridView.builder requiere que su padre sea Expanded o tenga una altura definida,
-                        // pero como estamos dentro de un ListView principal, debemos usar ShrinkWrap
-                        // y desactivar el scroll del GridView.
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
                           child: GridView.builder(
-                            shrinkWrap: true, // Esto permite que el GridView tome solo el espacio necesario en el ListView
+                            shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(), // Desactiva el scroll propio del GridView
                             itemCount: filteredIceCreams.length,
                             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: crossAxisCount,
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
-                              // Ajustamos la relación de aspecto para que la tarjeta no sea demasiado alta.
-                              // Se necesita una altura mínima para el contenido (preview + detalles)
-                              childAspectRatio: 0.75, // Ajuste para 1 columna (largo) -> 0.75 (más cuadrado)
+                              childAspectRatio: 0.75,
                             ),
                             itemBuilder: (context, index) {
                               final iceCream = filteredIceCreams[index];
-                              // Ajustamos el tamaño de la previsualización basado en el número de columnas
+                              // Ajuste el tamaño de la previsualización basado en el número de columnas
                               double previewSize = crossAxisCount == 1 ? 200.0 : 120.0;
                               return _IceCreamCard(
                                 iceCream: iceCream,
@@ -282,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     ),
-          const SizedBox(height: 16), // Espacio al final del grid
+          const SizedBox(height: 16),
         ],
       ),
       bottomNavigationBar: BottomNav(
@@ -292,7 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (index == 1) {
             Navigator.pushReplacementNamed(context, '/my_ice_creams');
           } else if (index == 2) {
-            Navigator.pushReplacementNamed(context, '/create_ice_cream'); // Asumiendo que el índice 2 es Crear
+            Navigator.pushReplacementNamed(context, '/create_ice_cream');
           } else if (index == 3) {
             Navigator.pushReplacementNamed(context, '/profile');
           }
@@ -302,7 +286,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// El widget _IceCreamCard (manteniendo tu lógica actual)
 class _IceCreamCard extends StatelessWidget {
   final dynamic iceCream;
   final double? previewSize;
@@ -407,26 +390,23 @@ class _IceCreamCard extends StatelessWidget {
             ),
           ),
           
-          // Preview del Helado
           SizedBox(
-            height: preview, // Ajusta la altura de la preview
+            height: preview,
             child: Center(
               child: IceCreamPreviewWidget(
                 base: iceCream.base ?? 'Cone',
                 flavors: iceCream.flavors ?? [],
                 toppings: iceCream.toppings ?? [],
-                size: preview * 0.9, // Ajusta el tamaño real del dibujo dentro del contenedor
+                size: preview * 0.9,
               ),
             ),
           ),
           
-          // Detalles de Sabores y Toppings
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Sabores
                 Text(
                   'Flavors:',
                   style: Theme.of(context).textTheme.titleSmall!.copyWith(
@@ -439,7 +419,7 @@ class _IceCreamCard extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 6,
                   children: [
-                    ...((iceCream.flavors ?? []).take(2)).map<Widget>( // Reducimos a 2 para más columnas
+                    ...((iceCream.flavors ?? []).take(2)).map<Widget>(
                       (flavor) => Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -496,7 +476,6 @@ class _IceCreamCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Toppings
                 Text(
                   'Toppings:',
                   style: Theme.of(context).textTheme.titleSmall!.copyWith(
@@ -509,7 +488,7 @@ class _IceCreamCard extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 6,
                   children: [
-                    ...((iceCream.toppings ?? []).take(2)).map<Widget>( // Reducimos a 2 para más columnas
+                    ...((iceCream.toppings ?? []).take(2)).map<Widget>(
                       (topping) => Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,

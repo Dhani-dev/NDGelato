@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/ice_cream_model.dart';
 
 class OrderProvider extends ChangeNotifier {
-  // items are maps: {id, name, price, quantity}
   final List<Map<String, dynamic>> _items = [];
 
   List<Map<String, dynamic>> get items => List.unmodifiable(_items);

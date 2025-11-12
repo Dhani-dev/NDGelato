@@ -86,7 +86,6 @@ class CreateOrderScreen extends StatelessWidget {
                             final id = await _service.createOrder(order);
                             orderProv.clear();
                             if (context.mounted) {
-                              // Use styled snackbar
                               showStyledSnackBar(context, title: 'Order placed', message: 'Order placed: $id', success: true);
                               Navigator.pushReplacementNamed(context, '/orders');
                             }

@@ -13,7 +13,6 @@ class OrdersWrapper extends StatelessWidget {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final role = auth.userModel?.role ?? 'user';
     
-    // Usando const para mantener el estado de los widgets
     if (role == 'admin') {
       return const OrdersAdminScreen();
     }

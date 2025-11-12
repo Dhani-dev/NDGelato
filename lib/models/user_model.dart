@@ -6,8 +6,7 @@ class UserModel extends Equatable {
   final String email;
   final String displayName;
   final String photoUrl;
-  // Campo adicional para distinguir entre usuarios normales y administradores
-  final String role; // Puede ser 'user' o 'admin'
+  final String role; // 'user' or 'admin'
   
   bool get isAdmin => role == 'admin';
 
@@ -19,7 +18,7 @@ class UserModel extends Equatable {
     this.role = 'user',
   });
 
-  // Factory constructor para crear un UserModel desde un Map (Firestore document)
+  //para crear un UserModel desde un Map 
   factory UserModel.fromMap(Map<String, dynamic> data) {
     return UserModel(
       uid: data['uid'] as String,
@@ -42,8 +41,6 @@ class UserModel extends Equatable {
     };
   }
 
-  // IMPLEMENTACIÓN REQUERIDA DE EQUATABLE
-  // Define las propiedades que, si son iguales, harán que dos UserModels sean iguales.
   @override
   List<Object> get props => [uid, email, displayName, photoUrl, role];
 }
